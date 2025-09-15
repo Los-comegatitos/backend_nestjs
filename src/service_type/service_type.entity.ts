@@ -1,1 +1,1 @@
-export class ServiceTypeEntity {}
+export class ServiceType {}

@@ -1,1 +1,1 @@
-export class EventTypeEntity {}
+export class EventType {}

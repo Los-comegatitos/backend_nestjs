@@ -1,1 +1,1 @@
-export class UserEntity {}
+export class User {}
