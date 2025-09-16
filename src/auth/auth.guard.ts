@@ -1,4 +1,4 @@
-//BACKEND_NESTJS/sra/auth/auth.guard.ts
+
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
