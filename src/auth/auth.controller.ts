@@ -1,4 +1,4 @@
-// BACKEND_NESTJS/src/auth/auth.controller.ts
+
 import { Controller, Post, Body, UnauthorizedException, Get, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
