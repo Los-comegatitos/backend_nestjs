@@ -1,4 +1,4 @@
-
+// BACKEND_NESTJS/src/auth/dto/login-auth.dto.ts
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
 export class LoginAuthDto {
@@ -6,6 +6,6 @@ export class LoginAuthDto {
   email: string;
 
   @IsString()
-  @MinLength(6)
+  @MinLength(8)
   password: string;
 }
