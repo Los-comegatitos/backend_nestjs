@@ -4,6 +4,6 @@ import { AibotController } from './aibot.controller';
 
 @Module({
   providers: [AibotService],
-  controllers: [AibotController]
+  controllers: [AibotController],
 })
 export class AibotModule {}

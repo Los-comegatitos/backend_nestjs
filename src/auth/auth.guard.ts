@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class AuthGuard implements CanActivate {
   canActivate(
+    // eslint-disable-next-line
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     return true;

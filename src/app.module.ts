@@ -16,7 +16,21 @@ import { EvaluationModule } from './evaluation/evaluation.module';
 import { ServiceModule } from './service/service.module';
 
 @Module({
-  imports: [ClientTypeModule, ServiceTypeModule, EventTypeModule, UserTypeModule, UserModule, EventModule, CatalogModule, AuthModule, AibotModule, TaskModule, QuoteModule, EvaluationModule, ServiceModule],
+  imports: [
+    ClientTypeModule,
+    ServiceTypeModule,
+    EventTypeModule,
+    UserTypeModule,
+    UserModule,
+    EventModule,
+    CatalogModule,
+    AuthModule,
+    AibotModule,
+    TaskModule,
+    QuoteModule,
+    EvaluationModule,
+    ServiceModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
