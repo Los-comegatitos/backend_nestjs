@@ -10,7 +10,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // Validar usuario
+ 
   async validateUser(email: string, pass: string) {
     try {
  
