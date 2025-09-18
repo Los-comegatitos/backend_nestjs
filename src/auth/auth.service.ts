@@ -21,7 +21,7 @@ export class AuthService {
       const isMatch = await bcrypt.compare(pass, user.password);
       if (!isMatch) return null;
 
-      // Excluir password
+
       const { password, ...result } = user;
       return result;
     } catch (err) {
@@ -30,7 +30,7 @@ export class AuthService {
     }
   }
 
-  // Crear JWT
+ 
   async login(user: any) {
     const payload = {
       email: user.email,
