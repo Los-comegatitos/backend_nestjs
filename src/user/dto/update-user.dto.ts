@@ -5,7 +5,7 @@ import { PartialType } from '@nestjs/mapped-types';
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   @IsString()
-  firtsName?: string;
+  firstName: string;
 
   @IsOptional()
   @IsString()

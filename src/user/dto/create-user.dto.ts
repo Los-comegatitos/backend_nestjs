@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, IsNumber, IsString, MinLength } from 'class-valida
 export class CreateUserDto {
   @IsNotEmpty({ message: 'The name cannot be empty' })
   @IsString()
-  firtsName: string;
+  firstName: string;
 
   @IsNotEmpty({ message: 'Last name cannot be empty' })
   @IsString()
