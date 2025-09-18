@@ -14,6 +14,8 @@ import { TaskModule } from './task/task.module';
 import { QuoteModule } from './quote/quote.module';
 import { EvaluationModule } from './evaluation/evaluation.module';
 import { ServiceModule } from './service/service.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -29,7 +31,14 @@ import { ServiceModule } from './service/service.module';
     TaskModule,
     QuoteModule,
     EvaluationModule,
-    ServiceModule,
+    ServiceModule, 
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URL'),
+      }),
+      inject: [ConfigService],
+    })
   ],
   controllers: [AppController],
   providers: [AppService],
