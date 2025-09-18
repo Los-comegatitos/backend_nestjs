@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -11,30 +10,32 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  // Validar usuario
   async validateUser(email: string, pass: string) {
     try {
-
-      const user = await this.userService.findByEmail(email, { relations: ['userType'] });
+ 
+      const user = await this.userService.findByEmail(email, { relations: ['typeuser'] });
 
       if (!user) return null;
 
       const isMatch = await bcrypt.compare(pass, user.password);
-      if (isMatch) {
+      if (!isMatch) return null;
 
-        const { password, ...result } = user;
-        return result;
-      }
-      return null;
-    } catch {
+      // Excluir password
+      const { password, ...result } = user;
+      return result;
+    } catch (err) {
+      console.error('Error validating user:', err);
       return null;
     }
   }
 
+  // Crear JWT
   async login(user: any) {
     const payload = {
-      username: user.username,
+      email: user.email,
       sub: user.id,
-      role: user.userType?.name || 'guest',
+      role: user.typeuser?.name || 'guest',
     };
 
     return {

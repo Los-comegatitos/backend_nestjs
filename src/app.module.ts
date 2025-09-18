@@ -1,8 +1,9 @@
-
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
 import { ClientTypeModule } from './client_type/client_type.module';
 import { ServiceTypeModule } from './service_type/service_type.module';
 import { EventTypeModule } from './event_type/event_type.module';
@@ -19,17 +20,23 @@ import { ServiceModule } from './service/service.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: 'DOC-20250917-WA0008.env',
+      isGlobal: true,
+    }),
+
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'dpg-d34pidali9vc7397vl1g-a.oregon-postgres.render.com',
-      port: 5432,
-      username: 'main_user',
-      password: 'n8EIhCsg00U28vnl14cF4pdlA5x7OPsS',
-      database: 'app_db_rz3n',
+      host: process.env.POSTGRE_SQL_HOST || 'localhost',
+      port: parseInt(process.env.POSTGRE_SQL_PORT || '5432', 10),
+      username: process.env.POSTGRE_SQL_USERNAME || 'postgres',
+      password: process.env.POSTGRE_SQL_PASSWORD || 'postgres',
+      database: process.env.POSTGRE_SQL_DATABASE || 'app_db',
       autoLoadEntities: true,
       synchronize: true,
       ssl: { rejectUnauthorized: false },
     }),
+
     ClientTypeModule,
     ServiceTypeModule,
     EventTypeModule,

@@ -18,6 +18,8 @@ export class UserService {
 constructor(
     @InjectRepository(User)
     private userRepo: Repository<User>,
+
+    @InjectRepository(User_Type)
     private usertypeRepo: Repository<User_Type>
 
   ) {}
