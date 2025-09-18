@@ -21,7 +21,7 @@ import { ServiceModule } from './service/service.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: 'DOC-20250917-WA0008.env',
+      envFilePath: '.env',
       isGlobal: true,
     }),
 
