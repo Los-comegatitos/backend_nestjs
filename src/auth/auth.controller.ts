@@ -4,12 +4,11 @@ import {
   Body,
   UnauthorizedException,
   Get,
-  UseGuards,
   Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
-import { JwtAuthGuard } from './jwt-strategy/jwt-auth.guard';
+
 
 @Controller('auth')
 export class AuthController {
@@ -35,13 +34,15 @@ export class AuthController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req: any) {
+    const { password, ...userWithoutPassword } = req.user;
     return {
       statusCode: 200,
       message: 'Profile retrieved successfully',
-      user: req.user,
+      user: userWithoutPassword,
     };
   }
+
+
 }
