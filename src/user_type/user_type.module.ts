@@ -1,3 +1,4 @@
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserTypeService } from './user_type.service';
@@ -8,9 +9,6 @@ import { User_Type } from './user_type.entity';
   imports: [TypeOrmModule.forFeature([User_Type])],
   providers: [UserTypeService],
   controllers: [UserTypeController],
-<<<<<<< HEAD
-=======
   exports: [UserTypeService],
->>>>>>> feat/user-type
 })
 export class UserTypeModule {}

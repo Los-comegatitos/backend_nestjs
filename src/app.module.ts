@@ -1,3 +1,4 @@
+
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -20,8 +21,6 @@ import { ServiceModule } from './service/service.module';
 
 @Module({
   imports: [
-<<<<<<< HEAD
-=======
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
@@ -39,7 +38,6 @@ import { ServiceModule } from './service/service.module';
       ssl: { rejectUnauthorized: false },
     }),
 
->>>>>>> feat/user-type
     ClientTypeModule,
     ServiceTypeModule,
     EventTypeModule,
