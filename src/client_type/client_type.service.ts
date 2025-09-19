@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import { UpdateClientTypeDto } from './dto/update-client_type.dto';
 import { ClientType } from './client_type.entity';
 
-
 @Injectable()
 export class ClientTypeService {
   constructor(

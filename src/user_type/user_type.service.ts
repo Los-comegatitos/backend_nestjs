@@ -1,5 +1,8 @@
-
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User_Type } from './user_type.entity';
@@ -14,10 +17,13 @@ export class UserTypeService {
   ) {}
 
   async create(dto: CreateUserTypeDto): Promise<User_Type> {
-    
-    const existing = await this.userTypeRepository.findOne({ where: { name: dto.name } });
+    const existing = await this.userTypeRepository.findOne({
+      where: { name: dto.name },
+    });
     if (existing) {
-      throw new BadRequestException(`UserType with name "${dto.name}" already exists`);
+      throw new BadRequestException(
+        `UserType with name "${dto.name}" already exists`,
+      );
     }
 
     const newType = this.userTypeRepository.create(dto);
@@ -34,11 +40,14 @@ export class UserTypeService {
       throw new NotFoundException('UserType not found');
     }
 
-
     if (dto.name && dto.name !== typeuser.name) {
-      const existing = await this.userTypeRepository.findOne({ where: { name: dto.name } });
+      const existing = await this.userTypeRepository.findOne({
+        where: { name: dto.name },
+      });
       if (existing) {
-        throw new BadRequestException(`UserType with name "${dto.name}" already exists`);
+        throw new BadRequestException(
+          `UserType with name "${dto.name}" already exists`,
+        );
       }
     }
 

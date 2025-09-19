@@ -21,7 +21,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-
   @Post()
   async create(@Body() dto: CreateUserDto) {
     if (!dto || dto.user_Typeid === undefined) {
@@ -30,17 +29,14 @@ export class UserController {
 
     const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
 
-
     if (typeUser.name.toLowerCase() === Role.Admin.toLowerCase()) {
       throw new ConflictException(
-        'Cannot create an Admin from the public endpoint'
+        'Cannot create an Admin from the public endpoint',
       );
     }
 
-
     return this.userService.create(dto);
   }
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
@@ -52,10 +48,8 @@ export class UserController {
       throw new ConflictException('Only Admin type can be created here');
     }
 
-
     return this.userService.create(dto, req.user.role);
   }
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)

@@ -20,8 +20,6 @@ import { ServiceModule } from './service/service.module';
 
 @Module({
   imports: [
-<<<<<<< HEAD
-=======
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
@@ -39,7 +37,6 @@ import { ServiceModule } from './service/service.module';
       ssl: { rejectUnauthorized: false },
     }),
 
->>>>>>> feat/user-type
     ClientTypeModule,
     ServiceTypeModule,
     EventTypeModule,

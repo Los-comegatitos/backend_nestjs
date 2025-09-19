@@ -1,4 +1,4 @@
-import {IsNotEmpty, IsString} from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateTypeClientDto {
   @IsNotEmpty({ message: 'The name cannot be empty' })
@@ -8,6 +8,4 @@ export class CreateTypeClientDto {
   @IsNotEmpty({ message: 'Description cannot be empty' })
   @IsString()
   description: string;
-
-
 }

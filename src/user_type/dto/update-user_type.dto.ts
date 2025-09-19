@@ -1,4 +1,3 @@
-
 import { IsOptional, IsString, MinLength, MaxLength } from 'class-validator';
 
 export class UpdateUserTypeDto {
