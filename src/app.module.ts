@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
 import { ClientTypeModule } from './client_type/client_type.module';
 import { ServiceTypeModule } from './service_type/service_type.module';
 import { EventTypeModule } from './event_type/event_type.module';
@@ -19,6 +22,26 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
+<<<<<<< HEAD
+=======
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true,
+    }),
+
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.POSTGRE_SQL_HOST || 'localhost',
+      port: parseInt(process.env.POSTGRE_SQL_PORT || '5432', 10),
+      username: process.env.POSTGRE_SQL_USERNAME || 'postgres',
+      password: process.env.POSTGRE_SQL_PASSWORD || 'postgres',
+      database: process.env.POSTGRE_SQL_DATABASE || 'app_db',
+      autoLoadEntities: true,
+      synchronize: true,
+      ssl: { rejectUnauthorized: false },
+    }),
+
+>>>>>>> feat/user-type
     ClientTypeModule,
     ServiceTypeModule,
     EventTypeModule,
