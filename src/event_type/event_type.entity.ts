@@ -1,4 +1,3 @@
-
 import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
 import { IsNotEmpty, MaxLength } from 'class-validator';
 

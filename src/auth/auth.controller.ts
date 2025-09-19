@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Post,
@@ -11,6 +10,7 @@ import {
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { JwtAuthGuard } from './jwt-strategy/jwt-auth.guard';
+import { User } from 'src/user/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -27,7 +27,7 @@ export class AuthController {
       });
     }
 
-    const token = await this.authService.login(user);
+    const token = this.authService.login(user);
 
     return {
       statusCode: 201,
@@ -38,7 +38,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req: any) {
+  getProfile(@Request() req: { user: User }) {
     return {
       statusCode: 200,
       message: 'Profile retrieved successfully',

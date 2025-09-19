@@ -1,12 +1,11 @@
-import { User_Type } from 'src/user_type/user_type.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   JoinColumn,
-  ManyToMany,
 } from 'typeorm';
+import { User_Type } from 'src/user_type/user_type.entity';
 
 @Entity('user')
 export class User {
@@ -35,6 +34,6 @@ export class User {
     eager: true,
     onDelete: 'SET NULL',
   })
-  @JoinColumn({ name: 'user_type_id' }) // FK
+  @JoinColumn({ name: 'user_type_id' })
   typeuser: User_Type;
 }

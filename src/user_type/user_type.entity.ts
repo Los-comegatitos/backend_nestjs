@@ -4,7 +4,6 @@ import {
   PrimaryGeneratedColumn,
   Column,
   Unique,
-  OneToOne,
   OneToMany,
 } from 'typeorm';
 
@@ -20,7 +19,6 @@ export class User_Type {
   @Column({ length: 255 })
   description: string;
 
-  // Relacion OneToOne con User
   @OneToMany(() => User, (user) => user.typeuser)
   users: User[];
 }

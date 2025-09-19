@@ -16,6 +16,8 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Request as ExpressRequest } from 'express';
+import { User } from './user.entity';
 
 @Controller('user')
 export class UserController {
@@ -41,14 +43,17 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Post('admin')
-  async createAdmin(@Body() dto: CreateUserDto, @Request() req) {
+  async createAdmin(
+    @Body() dto: CreateUserDto,
+    @Request() req: ExpressRequest & { user: User },
+  ) {
     const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
 
     if (typeUser.name.toLowerCase() !== Role.Admin.toLowerCase()) {
       throw new ConflictException('Only Admin type can be created here');
     }
 
-    return this.userService.create(dto, req.user.role);
+    return this.userService.create(dto, req.user.typeuser.name as Role);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

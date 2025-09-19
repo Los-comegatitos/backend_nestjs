@@ -3,6 +3,10 @@ import { Reflector } from '@nestjs/core';
 import { Role } from './roles.enum';
 import { ROLES_KEY } from './roles.decorator';
 
+interface UserWithRole {
+  role: Role | string;
+}
+
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -14,11 +18,11 @@ export class RolesGuard implements CanActivate {
     );
     if (!requiredRoles || requiredRoles.length === 0) return true;
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<{ user: UserWithRole }>();
     const user = request.user;
 
     if (!user) return false;
 
-    return requiredRoles.includes(user.role);
+    return requiredRoles.includes(user.role as Role);
   }
 }

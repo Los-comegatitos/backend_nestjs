@@ -1,4 +1,3 @@
-
 import { IsOptional, IsNotEmpty, MaxLength } from 'class-validator';
 
 export class UpdateEventTypeDto {
