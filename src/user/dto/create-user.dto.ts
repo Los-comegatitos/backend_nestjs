@@ -31,6 +31,5 @@ export class CreateUserDto {
   @MinLength(8, { message: 'Password must be at least 8 characters' })
   password: string;
 
-  @IsNumber()
-  user_Typeid: number;
+
 }

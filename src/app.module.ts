@@ -17,6 +17,9 @@ import { TaskModule } from './task/task.module';
 import { QuoteModule } from './quote/quote.module';
 import { EvaluationModule } from './evaluation/evaluation.module';
 import { ServiceModule } from './service/service.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
+
 
 @Module({
   imports: [
@@ -52,6 +55,12 @@ import { ServiceModule } from './service/service.module';
     ServiceModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService, 
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}

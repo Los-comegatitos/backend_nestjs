@@ -1,43 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { UserService } from 'src/user/user.service';
+import { compare } from 'bcrypt';
 import { User } from 'src/user/user.entity';
-import { UserResponseDto } from './dto/user-responde-.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
-    private jwtService: JwtService,
+    private readonly usersService: UserService,
+    private readonly jwtService: JwtService
   ) {}
 
-  async validateUser(email: string, pass: string) {
-    try {
-      const user: User = await this.userService.findByEmail(email);
+  async login(email: string, password: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new BadRequestException('User not found');
 
-      const isMatch = await bcrypt.compare(pass, user.password);
-      if (!isMatch) return null;
-
-      const { password, ...result } = user;
-      return result;
-    } catch (err) {
-      console.error('Error validating user:', err);
-      return null;
+    const isValid = await compare(password, user.password);
+    if (isValid) {
+      const payload = {
+        email: email,
+        typeuser: user.typeuser.name, 
+      };
+      return { token: await this.jwtService.signAsync(payload) };
     }
+
+    throw new UnauthorizedException('Invalid password');
   }
 
-async login(user: UserResponseDto) {
-  const payload = {
-    email: user.email,
-    sub: user.id,
-    role: user.typeuser?.name.toLowerCase() || 'guest',
-  };
-
-  return {
-    access_token: this.jwtService.sign(payload),
-  };
-}
-
-
+  async registerUser(user: User) {
+    return await this.usersService.create(user);
+  }
 }

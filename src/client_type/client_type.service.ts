@@ -21,20 +21,20 @@ export class ClientTypeService {
     return await this.clientTypeRepo.find();
   }
 
-  async findOne(id: number) {
-    const typeclient = await this.clientTypeRepo.findOneBy({ id });
+  async findOneByName(name: string) {
+    const typeclient = await this.clientTypeRepo.findOneBy({ name });
     if (!typeclient) throw new NotFoundException('client type not found');
     return typeclient;
   }
 
-  async update(id: number, dto: UpdateClientTypeDto) {
-    const typeclient = await this.findOne(id);
+  async update(name: string , dto: UpdateClientTypeDto) {
+    const typeclient = await this.findOneByName(name);
     Object.assign(typeclient, dto);
     return await this.clientTypeRepo.save(typeclient);
   }
 
-  async remove(id: number) {
-    const typeclient = await this.findOne(id);
+  async remove(name: string) {
+    const typeclient = await this.findOneByName(name);
     return await this.clientTypeRepo.remove(typeclient);
   }
 }
