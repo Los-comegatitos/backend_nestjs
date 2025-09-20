@@ -1,33 +1,40 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { compare } from 'bcrypt';
-import { User } from 'src/user/user.entity';
+import * as bcrypt from 'bcrypt';
 import { UserService } from 'src/user/user.service';
+import { User } from 'src/user/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UserService,
-    private readonly jwtService: JwtService
+    private userService: UserService,
+    private jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email);
-    if (!user) throw new BadRequestException('User not found');
+  async validateUser(email: string, pass: string) {
+    try {
+      const user: User = await this.userService.findByEmail(email);
 
-    const isValid = await compare(password, user.password);
-    if (isValid) {
-      const payload = {
-        email: email,
-        typeuser: user.typeuser.name, 
-      };
-      return { token: await this.jwtService.signAsync(payload) };
+      const isMatch = await bcrypt.compare(pass, user.password);
+      if (!isMatch) return null;
+
+      const { password, ...result } = user;
+      return result;
+    } catch (err) {
+      console.error('Error validating user:', err);
+      return null;
     }
-
-    throw new UnauthorizedException('Invalid password');
   }
 
-  async registerUser(user: User) {
-    return await this.usersService.create(user);
+  async login(user: any) {
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.typeuser?.name.toLowerCase() || 'guest',
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }

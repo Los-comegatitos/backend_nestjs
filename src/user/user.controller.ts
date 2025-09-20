@@ -2,18 +2,24 @@ import {
   Controller,
   Get,
   Post,
-  Put,
-  Body,
   Param,
+  Body,
+  ParseIntPipe,
+  UseGuards,
+  NotFoundException,
+  ConflictException,
+  Request,
 } from '@nestjs/common';
-
+import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { Role } from 'src/auth/roles.enum';
 import { UserService } from './user.service';
-import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: User) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post()
   async create(@Body() dto: CreateUserDto) {
@@ -32,7 +38,8 @@ export class UserController {
     return this.userService.create(dto);
   }
 
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @Post('admin')
   async createAdmin(@Body() dto: CreateUserDto, @Request() req) {
     const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
@@ -44,19 +51,22 @@ export class UserController {
     return this.userService.create(dto, req.user.role);
   }
 
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @Get()
   async findAll() {
     return this.userService.findAll();
   }
 
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @Get('email/:email')
   async findByEmail(@Param('email') email: string) {
     return this.userService.findByEmail(email);
   }
 
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @Get(':id')
   async findById(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.findById(id);
