@@ -17,11 +17,12 @@ import { Role } from 'src/auth/roles.enum';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Request as ExpressRequest } from 'express';
-import { User } from './user.entity';
+import { User_Type } from 'src/user_type/user_type.entity';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
 
   @Post()
   async create(@Body() dto: CreateUserDto) {
@@ -29,7 +30,12 @@ export class UserController {
       throw new ConflictException('Missing user type or body');
     }
 
-    const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
+    const typeId = Number(dto.user_Typeid);
+    if (isNaN(typeId)) {
+      throw new ConflictException('Invalid user_Typeid, must be a number');
+    }
+
+    const typeUser: User_Type = await this.userService.getTypeUser(typeId);
 
     if (typeUser.name.toLowerCase() === Role.Admin.toLowerCase()) {
       throw new ConflictException(
@@ -40,20 +46,38 @@ export class UserController {
     return this.userService.create(dto);
   }
 
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Post('admin')
   async createAdmin(
     @Body() dto: CreateUserDto,
-    @Request() req: ExpressRequest & { user: User },
+    @Request() req: ExpressRequest & { user: { role: string; sub: number } },
   ) {
-    const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
+    if (!dto || dto.user_Typeid === undefined) {
+      throw new ConflictException('Missing user type or body');
+    }
+
+    const typeId = Number(dto.user_Typeid);
+    if (isNaN(typeId)) {
+      throw new ConflictException('Invalid user_Typeid, must be a number');
+    }
+
+    let typeUser: User_Type;
+    try {
+      typeUser = await this.userService.getTypeUser(typeId);
+    } catch {
+      throw new NotFoundException(`User type with ID ${typeId} not found`);
+    }
 
     if (typeUser.name.toLowerCase() !== Role.Admin.toLowerCase()) {
       throw new ConflictException('Only Admin type can be created here');
     }
 
-    return this.userService.create(dto, req.user.typeuser.name as Role);
+ 
+    const requesterRole: Role = req.user.role as Role;
+
+    return this.userService.create(dto, requesterRole);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
