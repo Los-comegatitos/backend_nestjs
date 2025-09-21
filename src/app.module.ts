@@ -19,6 +19,8 @@ import { EvaluationModule } from './evaluation/evaluation.module';
 import { ServiceModule } from './service/service.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -51,7 +53,14 @@ import { AuthGuard } from './auth/auth.guard';
     TaskModule,
     QuoteModule,
     EvaluationModule,
-    ServiceModule,
+    ServiceModule, 
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URL'),
+      }),
+      inject: [ConfigService],
+    })
   ],
   controllers: [AppController],
   providers: [
