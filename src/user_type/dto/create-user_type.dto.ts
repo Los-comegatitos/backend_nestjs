@@ -1,4 +1,3 @@
-
 import { IsString, MinLength, MaxLength, IsNotEmpty } from 'class-validator';
 
 export class CreateUserTypeDto {

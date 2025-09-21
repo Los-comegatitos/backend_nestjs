@@ -17,13 +17,13 @@ import { TaskModule } from './task/task.module';
 import { QuoteModule } from './quote/quote.module';
 import { EvaluationModule } from './evaluation/evaluation.module';
 import { ServiceModule } from './service/service.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-<<<<<<< HEAD
-=======
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
@@ -41,7 +41,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       ssl: { rejectUnauthorized: false },
     }),
 
->>>>>>> feat/user-type
     ClientTypeModule,
     ServiceTypeModule,
     EventTypeModule,
@@ -64,6 +63,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     })
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'The name cannot be empty' })
@@ -27,6 +33,4 @@ export class CreateUserDto {
 
   @IsNumber()
   user_Typeid: number;
-
-
 }
