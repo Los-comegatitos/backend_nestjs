@@ -1,4 +1,4 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 export type QuoteDocument = HydratedDocument<Quote>;
@@ -19,6 +19,14 @@ export class Quote {
   toServiceId: number;
   @Prop()
   providerId: number;
+  @Prop(
+    raw({
+      serviceTypeId: { type: Number },
+      name: { type: String },
+      description: { type: String },
+    }),
+  )
+  service: Record<string, any>;
   @Prop()
   status: string;
 }
