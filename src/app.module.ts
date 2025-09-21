@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -29,16 +28,25 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       isGlobal: true,
     }),
 
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.POSTGRE_SQL_HOST || 'localhost',
-      port: parseInt(process.env.POSTGRE_SQL_PORT || '5432', 10),
-      username: process.env.POSTGRE_SQL_USERNAME || 'postgres',
-      password: process.env.POSTGRE_SQL_PASSWORD || 'postgres',
-      database: process.env.POSTGRE_SQL_DATABASE || 'app_db',
-      autoLoadEntities: true,
-      synchronize: true,
-      ssl: { rejectUnauthorized: false },
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('POSTGRE_SQL_HOST') || 'localhost',
+        port: parseInt(
+          configService.get<string>('POSTGRE_SQL_PORT') || '5432',
+          10,
+        ),
+        username:
+          configService.get<string>('POSTGRE_SQL_USERNAME') || 'postgres',
+        password:
+          configService.get<string>('POSTGRE_SQL_PASSWORD') || 'postgres',
+        database: configService.get<string>('POSTGRE_SQL_DATABASE') || 'app_db',
+        autoLoadEntities: true,
+        synchronize: true,
+        ssl: { rejectUnauthorized: false },
+      }),
+      inject: [ConfigService],
     }),
 
     ClientTypeModule,
@@ -53,14 +61,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     TaskModule,
     QuoteModule,
     EvaluationModule,
-    ServiceModule, 
+    ServiceModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGODB_URL'),
       }),
       inject: [ConfigService],
-    })
+    }),
   ],
   controllers: [AppController],
   providers: [
