@@ -64,13 +64,13 @@ export class UserService {
 
     const saved = await this.userRepo.save(user);
 
-    const { password, ...rest } = saved;
+    const { password: _password, ...rest } = saved;
     return rest;
   }
 
   async findAll() {
     const users = await this.userRepo.find({ relations: ['typeuser'] });
-    return users.map(({ password, ...rest }) => rest);
+    return users.map(({ password: _password, ...rest }) => rest);
   }
 
   async findById(id: number) {
@@ -79,7 +79,8 @@ export class UserService {
       relations: ['typeuser'],
     });
     if (!user) throw new NotFoundException('User not found');
-    const { password, ...rest } = user;
+
+    const { password: _password, ...rest } = user;
     return rest;
   }
 
@@ -107,7 +108,7 @@ export class UserService {
     });
     if (!updated) throw new NotFoundException('Updated user not found');
 
-    const { password, ...rest } = updated;
+    const { password: _password, ...rest } = updated;
     return rest;
   }
 

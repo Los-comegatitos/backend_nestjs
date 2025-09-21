@@ -27,7 +27,7 @@ export class ClientTypeService {
     return typeclient;
   }
 
-  async update(name: string , dto: UpdateClientTypeDto) {
+  async update(name: string, dto: UpdateClientTypeDto) {
     const typeclient = await this.findOneByName(name);
     Object.assign(typeclient, dto);
     return await this.clientTypeRepo.save(typeclient);

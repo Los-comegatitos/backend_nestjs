@@ -20,7 +20,6 @@ import { ServiceModule } from './service/service.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -56,7 +55,7 @@ import { AuthGuard } from './auth/auth.guard';
   ],
   controllers: [AppController],
   providers: [
-    AppService, 
+    AppService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
