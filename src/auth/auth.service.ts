@@ -18,7 +18,10 @@ export class AuthService {
     private userService: UserService,
   ) {}
 
-  async validateUser(email: string, pass: string) {
+  async validateUser(
+    email: string,
+    pass: string,
+  ): Promise<Omit<User, 'password'> | null> {
     try {
       const user: User = await this.userService.findByEmail(email);
 
