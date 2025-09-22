@@ -34,6 +34,6 @@ export class User {
     eager: true,
     onDelete: 'SET NULL',
   })
-  @JoinColumn({ name: 'user_type_id' }) // FK
+  @JoinColumn({ name: 'user_Typeid' }) // FK
   typeuser: User_Type;
 }
