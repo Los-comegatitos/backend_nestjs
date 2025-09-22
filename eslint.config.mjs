@@ -36,7 +36,10 @@ export default tseslint.config(
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
 
       // nuevas reglas mata builds
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       'unused-imports/no-unused-imports': 'error',
     },
   },

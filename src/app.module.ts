@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -17,6 +16,11 @@ import { TaskModule } from './task/task.module';
 import { QuoteModule } from './quote/quote.module';
 import { EvaluationModule } from './evaluation/evaluation.module';
 import { ServiceModule } from './service/service.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -25,16 +29,25 @@ import { ServiceModule } from './service/service.module';
       isGlobal: true,
     }),
 
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.POSTGRE_SQL_HOST || 'localhost',
-      port: parseInt(process.env.POSTGRE_SQL_PORT || '5432', 10),
-      username: process.env.POSTGRE_SQL_USERNAME || 'postgres',
-      password: process.env.POSTGRE_SQL_PASSWORD || 'postgres',
-      database: process.env.POSTGRE_SQL_DATABASE || 'app_db',
-      autoLoadEntities: true,
-      synchronize: true,
-      ssl: { rejectUnauthorized: false },
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('POSTGRE_SQL_HOST') || 'localhost',
+        port: parseInt(
+          configService.get<string>('POSTGRE_SQL_PORT') || '5432',
+          10,
+        ),
+        username:
+          configService.get<string>('POSTGRE_SQL_USERNAME') || 'postgres',
+        password:
+          configService.get<string>('POSTGRE_SQL_PASSWORD') || 'postgres',
+        database: configService.get<string>('POSTGRE_SQL_DATABASE') || 'app_db',
+        autoLoadEntities: true,
+        synchronize: true,
+        ssl: { rejectUnauthorized: false },
+      }),
+      inject: [ConfigService],
     }),
 
     ClientTypeModule,
@@ -50,8 +63,22 @@ import { ServiceModule } from './service/service.module';
     QuoteModule,
     EvaluationModule,
     ServiceModule,
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URL'),
+      }),
+      inject: [ConfigService],
+    }),
+    NotificationModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}

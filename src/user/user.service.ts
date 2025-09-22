@@ -63,8 +63,8 @@ export class UserService {
     });
 
     const saved = await this.userRepo.save(user);
-    const { password: _password, ...rest } = saved;
 
+    const { password: _password, ...rest } = saved;
     return rest;
   }
 
@@ -79,6 +79,7 @@ export class UserService {
       relations: ['typeuser'],
     });
     if (!user) throw new NotFoundException('User not found');
+
     const { password: _password, ...rest } = user;
     return rest;
   }
