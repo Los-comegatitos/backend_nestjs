@@ -19,35 +19,41 @@ import { Role } from 'src/auth/roles.enum';
 @Controller('event-types')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class EventTypeController {
-  constructor(private readonly eventTypeService: EventTypeService) {}
+  constructor(private readonly service: EventTypeService) {}
 
   @Post()
   @Roles(Role.Admin)
   create(@Body() dto: CreateEventTypeDto) {
-    return this.eventTypeService.create(dto);
+    return this.service.create(dto);
   }
 
   @Get()
   @Roles(Role.Admin)
   findAll() {
-    return this.eventTypeService.findAll();
+    return this.service.findAll();
+  }
+
+  @Get('/:name')
+  @Roles(Role.Admin)
+  async findOneByName(@Param('name') name: string) {
+    return await this.service.findOneByName(name);
   }
 
   @Get(':id')
   @Roles(Role.Admin)
-  findOne(@Param('id') id: string) {
-    return this.eventTypeService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.service.findOne(+id);
   }
 
   @Patch(':id')
   @Roles(Role.Admin)
-  update(@Param('id') id: string, @Body() dto: UpdateEventTypeDto) {
-    return this.eventTypeService.update(+id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateEventTypeDto) {
+    return await this.service.update(+id, dto);
   }
 
   @Delete(':id')
   @Roles(Role.Admin)
-  remove(@Param('id') id: string) {
-    return this.eventTypeService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.service.remove(+id);
   }
 }

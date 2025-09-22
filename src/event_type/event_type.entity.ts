@@ -1,19 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
-import { IsNotEmpty, MaxLength } from 'class-validator';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('event_types')
-@Unique(['name'])
+@Entity('event_type')
 export class EventType {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  @IsNotEmpty({ message: 'Name is required' })
-  @MaxLength(255, { message: 'Name cannot exceed 255 characters' })
+  @Column({ unique: true, length: 255 })
   name: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  @IsNotEmpty({ message: 'Description is required' })
-  @MaxLength(255, { message: 'Description cannot exceed 255 characters' })
+  @Column({ unique: true, length: 255 })
   description: string;
 }
