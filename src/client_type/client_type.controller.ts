@@ -2,11 +2,11 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Body,
   Param,
   Delete,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import { ClientTypeService } from './client_type.service';
 import { UpdateClientTypeDto } from './dto/update-client_type.dto';
@@ -23,33 +23,37 @@ export class ClientTypeController {
 
   @Get()
   @Roles(Role.Admin)
-  async Listar() {
+  async GetAll() {
     return await this.service.findAll();
   }
 
   @Get('/:name')
   @Roles(Role.Admin)
-  async Buscar(@Param('name') name: string) {
+  async findOneByName(@Param('name') name: string) {
     return await this.service.findOneByName(name);
   }
 
+  @Get(':id')
+  @Roles(Role.Admin)
+  async findOne(@Param('id') id: string) {
+    return await this.service.findOne(+id);
+  }
+
   @Post()
-  async Crear(@Body() body: CreateTypeClientDto) {
+  @Roles(Role.Admin)
+  async Create(@Body() body: CreateTypeClientDto) {
     return await this.service.create(body);
   }
 
-  @Put('/:name')
+  @Patch(':id')
   @Roles(Role.Admin)
-  async Modificar(
-    @Param('name') name: string,
-    @Body() body: UpdateClientTypeDto,
-  ) {
-    return await this.service.update(name, body);
+  async update(@Param('id') id: string, @Body() dto: UpdateClientTypeDto) {
+    return await this.service.update(+id, dto);
   }
 
-  @Delete('/:name')
+  @Delete(':id')
   @Roles(Role.Admin)
-  async Eliminar(@Param('name') name: string) {
-    return await this.service.remove(name);
+  async remove(@Param('id') id: string) {
+    return await this.service.remove(+id);
   }
 }

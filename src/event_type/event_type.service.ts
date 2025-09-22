@@ -34,9 +34,15 @@ export class EventTypeService {
     return this.eventTypeRepository.find();
   }
 
+  async findOneByName(name: string) {
+    const typeclient = await this.eventTypeRepository.findOneBy({ name });
+    if (!typeclient) throw new NotFoundException('Event type not found');
+    return typeclient;
+  }
+
   async findOne(id: number): Promise<EventType> {
     const eventType = await this.eventTypeRepository.findOne({ where: { id } });
-    if (!eventType) throw new NotFoundException('EventType not found');
+    if (!eventType) throw new NotFoundException('Event type not found');
     return eventType;
   }
 
@@ -61,6 +67,6 @@ export class EventTypeService {
   async remove(id: number): Promise<{ message: string }> {
     const eventType = await this.findOne(id);
     await this.eventTypeRepository.remove(eventType);
-    return { message: 'EventType deleted successfully' };
+    return { message: 'Event Type deleted successfully' };
   }
 }
