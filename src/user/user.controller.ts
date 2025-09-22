@@ -43,7 +43,7 @@ export class UserController {
       );
     }
 
-    return this.userService.create(dto);
+    return await this.userService.create(dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -56,21 +56,21 @@ export class UserController {
       throw new ConflictException('Only Admin type can be created here');
     }
 
-    return this.userService.create(dto, req.user.role);
+    return await this.userService.create(dto, req.user.role);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get()
   async findAll() {
-    return this.userService.findAll();
+    return await this.userService.findAll();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get('email/:email')
   async findByEmail(@Param('email') email: string) {
-    return this.userService.findByEmail(email);
+    return await this.userService.findByEmail(email);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
