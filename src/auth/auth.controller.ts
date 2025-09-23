@@ -1,18 +1,22 @@
-import { Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
-import { AuthGuard } from '@nestjs/passport';
-
-interface UserPayload {
-  id: number;
-  email: string;
-  role: string;
-}
+import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { LoginAuthDto } from './dto/login-auth.dto';
 
 @Controller('auth')
 export class AuthController {
-  @UseGuards(AuthGuard('jwt'))
-  @Post('profile')
-  getProfile(@Req() req: Request & { user: UserPayload }) {
-    return req.user;
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('login')
+  async login(@Body() loginDto: LoginAuthDto) {
+    const user = await this.authService.validateUser(
+      loginDto.email,
+      loginDto.password,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return this.authService.login(user);
   }
 }
