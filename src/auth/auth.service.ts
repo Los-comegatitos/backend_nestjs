@@ -43,8 +43,8 @@ export class AuthService {
 
     const payload = {
       sub: user.id,
-      username: user.email,
-      type: user.typeuser?.name,
+      email: user.email,
+      role: user.typeuser?.name,
     };
 
     return {

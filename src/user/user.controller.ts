@@ -46,6 +46,9 @@ export class UserController {
     return await this.userService.create(dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Post('admin')
   async createAdmin(@Body() dto: CreateUserDto, @Request() req: RequestUser) {
     const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
 
