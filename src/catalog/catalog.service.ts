@@ -120,6 +120,22 @@ export class CatalogService {
   }
 
   async listUsedServiceTypes(providerId: string): Promise<ServiceType[]> {
+    const uniqueServiceTypeIds: string[] =
+      await this.listUsedServiceTypesOnlyId(providerId);
+
+    // Utilizar servicio de tipo para llenar la info
+    // array de promises para luego utilizar promise.all
+    const promises = uniqueServiceTypeIds.map((id) =>
+      this.serviceTypeService.findOne(parseInt(id)),
+    );
+
+    const listTypeServices = await Promise.all(promises);
+
+    return listTypeServices;
+  }
+
+  // retorna una array de solos los id de los tipos de servicios en el catálogo del proveedor.
+  async listUsedServiceTypesOnlyId(providerId: string): Promise<string[]> {
     const catalog = await this.findByProviderId(providerId);
     if (!catalog.services || catalog.services.length === 0) {
       return [];
@@ -132,14 +148,6 @@ export class CatalogService {
     // set para eliminar dublicados
     const uniqueServiceTypeIds: string[] = [...new Set(serviceTypeIds)];
 
-    // Utilizar servicio de tipo para llenar la info
-    // array de promises para luego utilizar promise.all
-    const promises = uniqueServiceTypeIds.map((id) =>
-      this.serviceTypeService.findOne(parseInt(id)),
-    );
-
-    const listTypeServices = await Promise.all(promises);
-
-    return listTypeServices;
+    return uniqueServiceTypeIds;
   }
 }

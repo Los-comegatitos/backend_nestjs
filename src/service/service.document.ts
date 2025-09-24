@@ -1,27 +1,36 @@
-import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
+// quote anidado
+@Schema()
+class Quote {
+  @Prop()
+  date: Date;
+  @Prop()
+  quantity: number;
+  @Prop()
+  price: number;
+  @Prop()
+  serviceTypeId: string;
+  @Prop()
+  providerId: string;
+}
+const QuoteSchema = SchemaFactory.createForClass(Quote);
+
+// Servicio que va anidado en event (no confundir con el que va anidado en catalog)
 @Schema()
 export class Service {
   @Prop()
-  id: number;
+  dueDate: Date;
+  @Prop()
+  serviceTypeId: string;
   @Prop()
   name: string;
   @Prop()
-  serviceTypeId: number;
-  @Prop()
   description: string;
-  @Prop()
-  quantity: number;
-  @Prop(
-    raw({
-      date: { type: Date },
-      quantity: { type: Number },
-      price: { type: Number },
-      serviceTypeId: { type: Number },
-      providerId: { type: Number },
-    }),
-  )
-  quote: Record<string, any>;
+  @Prop({ type: Number })
+  quantity: number | null;
+  @Prop({ type: QuoteSchema, default: null })
+  quote: Quote | null;
 }
 
 export const ServiceSchema = SchemaFactory.createForClass(Service);

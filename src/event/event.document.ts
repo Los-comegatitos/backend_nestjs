@@ -1,50 +1,38 @@
-import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { Service } from 'src/service/service.document';
-import { Task } from 'src/task/task.document';
+import { ServiceSchema, Service } from 'src/service/service.document';
+import { TaskSchema, Task } from 'src/task/task.document';
 
+//schema principal event ahora sí
 @Schema()
 export class Event {
   @Prop()
-  id: number;
+  id: string;
   @Prop()
   name: string;
   @Prop()
   description: string;
   @Prop()
   eventDate: Date;
-  @Prop()
+  @Prop({ default: Date.now })
   creationDate: Date;
   @Prop()
-  eventTypeId: number;
+  eventTypeId: string;
   @Prop()
-  organizerUserId: number;
-  @Prop(
-    raw({
-      name: { type: String },
-      clientTypeId: { type: Number },
-      description: { type: String },
-    }),
-  )
-  client: Record<string, any>;
-  @Prop([Service])
-  services: Service[];
-  @Prop([Task])
-  tasks: Task[];
+  organizerUserId: string;
+  @Prop()
+  status: 'in progress' | 'finished' | 'canceled';
+  @Prop({ type: Object })
+  client: {
+    name: string;
+    clientTypeId: string;
+    description: string | null;
+  };
+  @Prop([ServiceSchema])
+  services: Types.DocumentArray<Service>;
+  @Prop([TaskSchema])
+  tasks: Types.DocumentArray<Task>;
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);
-
-export type EventDocumentOverride = {
-  name: Types.DocumentArray<Service>;
-};
-
-export type EventDocumentOverride2 = {
-  name: Types.DocumentArray<Task>;
-};
-
-export type EventDocument = HydratedDocument<
-  Event,
-  EventDocumentOverride,
-  EventDocumentOverride2
->;
+export type EventDocument = HydratedDocument<Event>;
