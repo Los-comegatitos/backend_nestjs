@@ -1,8 +1,22 @@
-import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 export type QuoteDocument = HydratedDocument<Quote>;
 
+// service anidado SOLO para quote
+@Schema()
+export class Service {
+  @Prop()
+  serviceTypeId: string;
+  @Prop()
+  name: string;
+  @Prop()
+  description: string;
+}
+
+const ServiceSchema = SchemaFactory.createForClass(Service);
+
+// Este es el quote en sí, no confundir con quotes que va anidado en Event.
 @Schema()
 export class Quote {
   @Prop()
@@ -19,16 +33,10 @@ export class Quote {
   toServiceId: number;
   @Prop()
   providerId: number;
-  @Prop(
-    raw({
-      serviceTypeId: { type: Number },
-      name: { type: String },
-      description: { type: String },
-    }),
-  )
-  service: Record<string, any>;
+  @Prop([ServiceSchema])
+  service: Service;
   @Prop()
-  status: string;
+  status: string; // considerar luego enums?
 }
 
 export const QuoteShema = SchemaFactory.createForClass(Quote);
