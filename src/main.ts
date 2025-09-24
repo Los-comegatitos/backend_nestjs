@@ -2,10 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { ErrorFilter } from './common/filters/error.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new ErrorFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -13,6 +16,11 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // por ahora con *, en produccion no debería.
+  app.enableCors({
+    origin: '*',
+  });
 
   const config = new DocumentBuilder()
     .addBearerAuth()

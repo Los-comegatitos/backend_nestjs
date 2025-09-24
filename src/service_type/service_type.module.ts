@@ -8,5 +8,6 @@ import { ServiceType } from './service_type.entity';
   providers: [ServiceTypeService],
   controllers: [ServiceTypeController],
   imports: [TypeOrmModule.forFeature([ServiceType])],
+  exports: [ServiceTypeService],
 })
 export class ServiceTypeModule {}
