@@ -25,7 +25,7 @@ export class QuoteController {
     const quotes =
       await this.quoteService.getPendingQuotesByOrganizer(organizerId);
 
-    console.log('Cotizaciones recibidas:', quotes);
+    console.log('Quotes received:', quotes);
 
     return quotes;
   }
@@ -46,7 +46,7 @@ export class QuoteController {
       filter.status,
     );
 
-    console.log('Cotizaciones encontradas:', quotes);
+    console.log('Quotes found:', quotes);
     return quotes;
   }
 

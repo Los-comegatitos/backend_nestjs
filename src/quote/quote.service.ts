@@ -43,7 +43,7 @@ export class QuoteService {
         id: quote.id,
         name: quote.service?.name ?? 'Unknown',
         price: quote.price,
-        eventName: quote.event?.name ?? 'Evento sin nombre',
+        eventName: quote.event?.name ?? 'Unnamed event',
       });
     });
 
@@ -67,7 +67,7 @@ export class QuoteService {
     return quotes.map((q) => ({
       id: q.id,
       eventId: q.eventId,
-      eventName: q.event?.name ?? 'Evento sin nombre',
+      eventName: q.event?.name ?? 'Unnamed event',
       serviceName: q.service?.name ?? 'Unknown',
       price: q.price,
       status: q.status,
@@ -77,7 +77,7 @@ export class QuoteService {
 
   async testFindAll() {
     const quotes = await this.quoteModel.find().lean();
-    console.log('Todas las cotizaciones:', quotes);
+    console.log('All quotes:', quotes);
     return quotes;
   }
 }
