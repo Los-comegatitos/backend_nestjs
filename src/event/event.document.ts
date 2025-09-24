@@ -5,16 +5,14 @@ import { Task } from 'src/task/task.document';
 
 @Schema()
 export class Event {
-  @Prop()
-  id: number;
+  @Prop({ required: true, unique: true })
+  eventId: string;
   @Prop()
   name: string;
   @Prop()
   description: string;
   @Prop()
   eventDate: Date;
-  @Prop()
-  creationDate: Date;
   @Prop()
   eventTypeId: number;
   @Prop()
@@ -27,10 +25,12 @@ export class Event {
     }),
   )
   client: Record<string, any>;
-  @Prop([Service])
+  @Prop({ default: 'active' })
+  status: 'active' | 'finalized';
+  /*@Prop([Service])
   services: Service[];
   @Prop([Task])
-  tasks: Task[];
+  tasks: Task[];*/
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);
