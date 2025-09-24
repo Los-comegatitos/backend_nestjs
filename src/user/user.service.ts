@@ -53,7 +53,10 @@ export class UserService {
       throw new ConflictException('Only an admin can register another admin');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 8);
+    const hashedPassword = await bcrypt.hash(
+      Buffer.from(dto.password, 'base64').toString('utf-8'),
+      10,
+    );
 
     const user = this.userRepo.create({
       ...dto,
@@ -98,7 +101,7 @@ export class UserService {
     if (!user) throw new NotFoundException('User not found');
 
     const updates: Partial<User> = { ...dto };
-    if (dto.password) updates.password = await bcrypt.hash(dto.password, 8);
+    if (dto.password) updates.password = await bcrypt.hash(dto.password, 10);
 
     await this.userRepo.update(id, updates);
 

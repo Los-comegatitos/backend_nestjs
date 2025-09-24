@@ -28,6 +28,7 @@ async function bootstrap() {
 
   const appUrl = await app.getUrl();
   console.log(`Application is running on: ${appUrl}`);
+  console.log(`Swagger UI is running on: ${appUrl}/api`);
 }
 
 void bootstrap();
