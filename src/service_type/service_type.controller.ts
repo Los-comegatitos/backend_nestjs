@@ -5,19 +5,19 @@ import {
   Body,
   Param,
   Delete,
-  UseGuards,
   Patch,
 } from '@nestjs/common';
+// import {UseGuards} from '@nestjs/common';
 import { UpdateServiceTypeDto } from './dto/update-service_type.dto';
 import { CreateServiceTypeDto } from './dto/create-service_type.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
+// import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
+// import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { ServiceTypeService } from './service_type.service';
 
 @Controller('service-type')
-@UseGuards(JwtAuthGuard, RolesGuard)
+// @UseGuards(JwtAuthGuard, RolesGuard)
 export class ServiceTypeController {
   constructor(private readonly service: ServiceTypeService) {}
 
