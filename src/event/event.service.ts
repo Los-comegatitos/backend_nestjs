@@ -1,53 +1,94 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { EventDocument } from './event.document';
 import { Model } from 'mongoose';
-import { CatalogService } from 'src/catalog/catalog.service';
-import { FilteredEvent } from './event.interfaces';
+import { Event } from './event.document';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
+import { EventType } from 'src/event_type/event_type.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class EventService {
   constructor(
-    @InjectModel(Event.name) private eventModel: Model<EventDocument>,
-    private readonly catalogService: CatalogService,
+    @InjectModel(Event.name) private readonly eventModel: Model<Event>,
+    @InjectRepository(EventType)
+    private readonly eventTypeRepository: Repository<EventType>,
   ) {}
 
-  async findEventsByServiceTypes(
-    serviceTypeIds: string[],
-  ): Promise<FilteredEvent[]> {
-    const events: FilteredEvent[] = (await this.eventModel
-      .aggregate([
-        // match para eventos cuyos services.serviceTypeId hagan mach con alguno de los serviceTypeIds
-        {
-          $match: {
-            'services.serviceTypeId': { $in: serviceTypeIds },
-          },
-        }, // devolver solo estos campos deseados
-        {
-          $project: {
-            name: 1,
-            description: 1,
-            eventDate: 1,
-            // Filtrar para solo mostrar services con el mismo serviceTypeId
-            services: {
-              $filter: {
-                input: '$services',
-                as: 'service',
-                cond: { $in: ['$$service.serviceTypeId', serviceTypeIds] },
-              },
-            },
-          },
-        },
-      ])
-      .exec()) as FilteredEvent[];
-    // as FilteredEvent porque es lo que describí en el project
-    return events;
+  async create(createEventDto: CreateEventDto): Promise<Event> {
+    const existingEvent = await this.eventModel.findOne({
+      eventId: createEventDto.eventId,
+    });
+    if (existingEvent) {
+      throw new ConflictException(
+        `El eventId "${createEventDto.eventId}" ya existe`,
+      );
+    }
+
+    const eventType = await this.eventTypeRepository.findOne({
+      where: { id: createEventDto.eventTypeId },
+    });
+
+    if (!eventType) {
+      throw new NotFoundException(
+        `EventType con id ${createEventDto.eventTypeId} no existe`,
+      );
+    }
+
+    const createdEvent = new this.eventModel(createEventDto);
+    return createdEvent.save();
   }
 
-  async findEventsForProvider(providerId: string): Promise<FilteredEvent[]> {
-    const serviceTypesId: string[] =
-      await this.catalogService.listUsedServiceTypesOnlyId(providerId);
+  async findAll(): Promise<Event[]> {
+    return this.eventModel.find().exec();
+  }
 
-    return await this.findEventsByServiceTypes(serviceTypesId);
+  async update(
+    eventId: string,
+    updateEventDto: UpdateEventDto,
+  ): Promise<Event> {
+    if (updateEventDto.eventTypeId) {
+      const eventType = await this.eventTypeRepository.findOne({
+        where: { id: updateEventDto.eventTypeId },
+      });
+
+      if (!eventType) {
+        throw new NotFoundException(
+          `EventType con id ${updateEventDto.eventTypeId} no existe`,
+        );
+      }
+    }
+
+    const updatedEvent = await this.eventModel.findOneAndUpdate(
+      { eventId },
+      updateEventDto,
+      { new: true },
+    );
+
+    if (!updatedEvent) {
+      throw new NotFoundException(`Event with eventId "${eventId}" not found`);
+    }
+    return updatedEvent;
+  }
+
+  async finalize(eventId: string): Promise<Event> {
+    const event = await this.eventModel.findOneAndUpdate(
+      { eventId },
+      { status: 'finalized' },
+      { new: true },
+    );
+
+    if (!event) {
+      throw new NotFoundException(
+        `Event con eventId "${eventId}" no encontrado`,
+      );
+    }
+
+    return event;
   }
 }

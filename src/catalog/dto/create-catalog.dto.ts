@@ -6,16 +6,20 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateServiceDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   serviceTypeId: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   name: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   description: string;
@@ -23,15 +27,18 @@ export class CreateServiceDto {
 }
 
 export class CreateCatalogDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   providerId: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   @MaxLength(500)
   description: string;
 
+  @ApiProperty()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateServiceDto)

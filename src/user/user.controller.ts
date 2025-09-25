@@ -16,6 +16,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 interface RequestUser {
   user: {
@@ -59,6 +60,7 @@ export class UserController {
     return await this.userService.create(dto, req.user.role);
   }
 
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get()
@@ -66,6 +68,7 @@ export class UserController {
     return await this.userService.findAll();
   }
 
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get('email/:email')
@@ -73,6 +76,7 @@ export class UserController {
     return await this.userService.findByEmail(email);
   }
 
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get(':id')
