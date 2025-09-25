@@ -54,4 +54,14 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
+
+  // VerifyJWT(token: string) {
+  //   try {
+  //     const decoded = this.jwtService.verify(token)!
+  //     return decoded;
+  //   } catch (err) {
+  //     console.log(err);
+  //     throw new UnauthorizedException();
+  //   }
+  // }
 }
