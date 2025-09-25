@@ -1,45 +1,53 @@
-import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
+// attachments anidados
+@Schema()
+class Attachment {
+  @Prop()
+  id: string;
+  @Prop()
+  fileName: string;
+}
+const AttachmentSchema = SchemaFactory.createForClass(Attachment);
+
+//comments anidados
+@Schema()
+class Comment {
+  @Prop()
+  idUser: string;
+  @Prop()
+  userType: string;
+  @Prop()
+  date: Date;
+  @Prop()
+  description: string;
+}
+const CommentSchema = SchemaFactory.createForClass(Comment);
 
 @Schema()
 export class Task {
   @Prop()
-  id: number;
+  id: string;
   @Prop()
   name: string;
   @Prop()
   description: string;
   @Prop()
   creationDate: Date;
-  @Prop()
-  completitionDate: Date;
+  @Prop({ type: Date })
+  completionDate: Date | null;
   @Prop()
   reminderDate: Date;
   @Prop()
   dueDate: Date;
   @Prop()
-  status: string;
-  @Prop(
-    raw([
-      {
-        id: { type: Number },
-        fileName: { type: String },
-      },
-    ]),
-  )
-  attachments: Array<Record<string, any>>;
-  @Prop(
-    raw([
-      {
-        idUser: { type: Number },
-        userType: { type: String },
-        date: { type: Date },
-        description: { type: String },
-      },
-    ]),
-  )
-  comments: Array<Record<string, any>>;
-  @Prop()
-  associatedProviderId: number;
+  status: 'pending' | 'completed';
+  @Prop([AttachmentSchema])
+  attachments: Attachment[];
+  @Prop([CommentSchema])
+  comments: Comment[];
+  @Prop({ type: String })
+  associatedProviderId: string | null;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);

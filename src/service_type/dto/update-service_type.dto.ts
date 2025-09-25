@@ -7,7 +7,7 @@ export class UpdateServiceTypeDto {
   name: string;
 
   @IsNotEmpty({ message: 'Description cannot be empty' })
-  @IsString({ message: 'The name must be a text' })
+  @IsString({ message: 'The description must be a text' })
   @MaxLength(255, { message: 'Description cannot exceed 255 characters' })
   description: string;
 }

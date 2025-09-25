@@ -6,18 +6,17 @@ import {
   Delete,
   Param,
   Body,
-  UseGuards,
 } from '@nestjs/common';
 import { EventTypeService } from './event_type.service';
 import { CreateEventTypeDto } from './dto/create-event_type.dto';
 import { UpdateEventTypeDto } from './dto/update-event_type.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
+// import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
+// import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 
-@Controller('event-types')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('event-type')
+// @UseGuards(JwtAuthGuard, RolesGuard)
 export class EventTypeController {
   constructor(private readonly service: EventTypeService) {}
 
