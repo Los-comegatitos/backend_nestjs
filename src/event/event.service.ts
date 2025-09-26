@@ -14,6 +14,7 @@ import { Repository } from 'typeorm';
 import { CatalogService } from 'src/catalog/catalog.service';
 import { FilteredEvent } from './event.interfaces';
 import { Service } from 'src/service/service.document';
+import { AddServiceDto } from './dto/event-service.dto';
 
 @Injectable()
 export class EventService {
@@ -24,7 +25,13 @@ export class EventService {
     private readonly catalogService: CatalogService,
   ) {}
 
-  async create(createEventDto: CreateEventDto): Promise<Event> {
+  async create(
+    createEventDto: CreateEventDto,
+    providerId: number,
+  ): Promise<Event> {
+    const providerIdString = providerId.toString();
+
+    // validacion eventType
     const eventType = await this.eventTypeRepository.findOne({
       where: { id: createEventDto.eventTypeId },
     });
@@ -34,6 +41,9 @@ export class EventService {
       );
     }
 
+    // TODO debería aquí validación clientType
+    //
+
     const lastEvent = await this.eventModel
       .findOne()
       .sort({ eventId: -1 })
@@ -42,6 +52,7 @@ export class EventService {
 
     const createdEvent = new this.eventModel({
       ...createEventDto,
+      organizerUserId: providerIdString,
       eventId: nextEventId,
       status: 'in progress',
     });
@@ -51,6 +62,12 @@ export class EventService {
 
   async findAll(): Promise<Event[]> {
     return this.eventModel.find().exec();
+  }
+
+  async findAllOrganizer(organizerId: number): Promise<Event[]> {
+    const organizerIdString = organizerId.toString();
+
+    return this.eventModel.find({ organizerUserId: organizerIdString }).exec();
   }
 
   async update(
@@ -142,16 +159,39 @@ export class EventService {
   async findById(eventId: string): Promise<EventDocument> {
     const event = await this.eventModel.findById(eventId);
     if (!event) {
-      throw new NotFoundException('Event not found.');
+      throw new NotFoundException(`Event with id ${eventId} not found.`);
     }
+    return event;
+  }
+
+  async findByIdValidated(
+    eventId: string,
+    organizerId: number,
+  ): Promise<EventDocument> {
+    const organizerIdString = organizerId.toString();
+    const event = await this.eventModel.findOne({
+      eventId: eventId,
+      organizerUserId: organizerIdString,
+    });
+
+    if (!event) {
+      throw new NotFoundException(
+        `Event with id ${eventId} not found for user ${organizerIdString}.`,
+      );
+    }
+
     return event;
   }
 
   async addService(
     eventId: string,
-    dto: Partial<Service>,
+    dto: AddServiceDto,
   ): Promise<EventDocument> {
-    const event = await this.findById(eventId);
+    const event = await this.eventModel.findOne({ eventId: eventId });
+
+    if (!event) {
+      throw new BadRequestException("Event doesn't exists");
+    }
 
     const exists = event.services.some((s) => s.name === dto.name);
     if (exists) {
@@ -170,7 +210,11 @@ export class EventService {
     eventId: string,
     serviceName: string,
   ): Promise<EventDocument> {
-    const event = await this.findById(eventId);
+    const event = await this.eventModel.findOne({ eventId: eventId });
+
+    if (!event) {
+      throw new BadRequestException("Event doesn't exists");
+    }
 
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {
@@ -183,14 +227,8 @@ export class EventService {
       );
     }
 
-    const initialLength = event.services.length;
-
-    // TODO filter pa fuera de service
-    // event.services = event.services.filter((s) => s.name !== serviceName);
-
-    if (event.services.length === initialLength) {
-      throw new NotFoundException('Service with this name not found.');
-    }
+    //
+    event.services.pull({ name: serviceName });
 
     return event.save();
   }
@@ -198,9 +236,13 @@ export class EventService {
   async updateService(
     eventId: string,
     serviceName: string,
-    dto: Partial<Service>,
+    dto: Partial<AddServiceDto>,
   ): Promise<EventDocument> {
-    const event = await this.findById(eventId);
+    const event = await this.eventModel.findOne({ eventId: eventId });
+
+    if (!event) {
+      throw new BadRequestException("Event doesn't exists");
+    }
 
     const serviceToUpdate = event.services.find((s) => s.name === serviceName);
     if (!serviceToUpdate) {
