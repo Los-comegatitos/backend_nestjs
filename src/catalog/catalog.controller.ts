@@ -18,10 +18,12 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { Request } from 'express';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 // @UseGuards(new JwtAuthGuard())
 @Controller('catalog')
+@ApiBearerAuth()
 export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}
 
