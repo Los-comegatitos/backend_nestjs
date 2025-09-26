@@ -27,9 +27,9 @@ class ClientDto {
 
 export class CreateEventDto {
   @ApiProperty({ example: '1' })
-  @IsString()
-  @IsNotEmpty()
-  eventId: string;
+  @IsOptional()
+  @IsNumber()
+  eventId?: number;
 
   @ApiProperty()
   @IsString()
@@ -57,14 +57,4 @@ export class CreateEventDto {
   @ApiProperty()
   @IsNumber()
   organizerUserId: number;
-
-  /*@ApiProperty({ type: [String], required: false })
-  @IsArray()
-  @IsOptional()
-  services?: string[];
-
-  /*@ApiProperty({ type: [String], required: false })
-  @IsArray()
-  @IsOptional()
-  tasks?: string[];*/
 }
