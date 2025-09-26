@@ -6,11 +6,16 @@
 // import { QuoteService } from './quote.service';
 // import { FilterSentQuotesDto } from './dto/filter-sent-quotes.dto';
 
+import { Controller } from '@nestjs/common';
+
 // interface RequestWithUser extends Request {
 //   user: { userId: number; role: Role; email: string };
 // }
 
-export class QuoteController {}
+@Controller()
+export class QuoteController {
+  constructor() {}
+}
 // @Controller('quote')
 // @UseGuards(JwtAuthGuard, RolesGuard)
 // export class QuoteController {
