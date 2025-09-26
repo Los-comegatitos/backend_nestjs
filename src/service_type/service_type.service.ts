@@ -34,6 +34,10 @@ export class ServiceTypeService {
     return this.serviceTypeRepository.find();
   }
 
+  async findAmount() {
+    return this.serviceTypeRepository.count();
+  }
+
   async findOneByName(name: string) {
     const servicetype = await this.serviceTypeRepository.findOneBy({ name });
     if (!servicetype)
