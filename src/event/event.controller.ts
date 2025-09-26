@@ -8,6 +8,7 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Event } from './event.document';
 import { Roles } from 'src/auth/roles.decorator';
@@ -18,6 +19,7 @@ import { Role } from 'src/auth/roles.enum';
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
+  @ApiBearerAuth()
   @Post()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Crear un nuevo evento' })
@@ -31,6 +33,7 @@ export class EventController {
     return await this.eventService.create(createEventDto);
   }
 
+  @ApiBearerAuth()
   @Get()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Listar todos los eventos' })
@@ -39,6 +42,7 @@ export class EventController {
     return await this.eventService.findAll();
   }
 
+  @ApiBearerAuth()
   @Put(':eventId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Modificar un evento' })
@@ -52,6 +56,7 @@ export class EventController {
     return await this.eventService.update(id, updateEventDto);
   }
 
+  @ApiBearerAuth()
   @Patch(':eventId/finalize')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Finalizar un evento' })
