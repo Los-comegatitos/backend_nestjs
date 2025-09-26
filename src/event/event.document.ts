@@ -7,7 +7,7 @@ import { TaskSchema, Task } from 'src/task/task.document';
 @Schema()
 export class Event {
   @Prop()
-  id: string;
+  eventId: string;
   @Prop()
   name: string;
   @Prop()
