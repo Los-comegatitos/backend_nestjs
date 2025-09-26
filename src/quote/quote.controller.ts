@@ -17,13 +17,27 @@ import { QuoteService } from './quote.service';
 export class QuoteController {
   constructor(private readonly quoteService: QuoteService) {}
 
-  @Get('received')
+  /*@Get('received')
   @Roles(Role.Organizer)
   async getReceivedQuotes(
     @Request() req: { user: { userId: number; role: Role; email: string } },
   ) {
     const organizerId = req.user.userId;
     return this.quoteService.getPendingQuotesByOrganizer(organizerId);
+  }
+  */
+
+  @Get('received/:eventId')
+  @Roles(Role.Organizer)
+  async getReceivedQuotesByEvent(
+    @Request() req: { user: { userId: number; role: Role; email: string } },
+    @Param('eventId') eventId: string,
+  ) {
+    const organizerId = req.user.userId;
+    return this.quoteService.getPendingQuotesByEvent(
+      organizerId,
+      Number(eventId),
+    );
   }
 
   @Get('sent/:providerId')
