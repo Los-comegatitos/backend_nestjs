@@ -11,6 +11,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User_Type } from 'src/user_type/user_type.entity';
 import { Role } from 'src/auth/roles.enum';
+import { CatalogService } from 'src/catalog/catalog.service';
 
 @Injectable()
 export class UserService {
@@ -19,6 +20,7 @@ export class UserService {
     private userRepo: Repository<User>,
     @InjectRepository(User_Type)
     private usertypeRepo: Repository<User_Type>,
+    private readonly catalogService: CatalogService,
   ) {}
 
   async create(dto: CreateUserDto, requesterRole?: Role) {
@@ -66,6 +68,14 @@ export class UserService {
     });
 
     const saved = await this.userRepo.save(user);
+
+    // Si se registró un provider, crearle su catálogo
+    if (typeUser.name.toLowerCase() === Role.Provider.toLowerCase()) {
+      const providerId = saved.id.toString();
+      await this.catalogService.create(providerId);
+    }
+
+    // Si se registra un provider habrá que hacer lo de las calificaciones (a ver si es un doc aparte o en el catálogo)
 
     const { password: _password, ...rest } = saved;
     return rest;
