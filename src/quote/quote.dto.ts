@@ -5,7 +5,6 @@ import {
   IsInt,
   IsNotEmpty,
   IsNotEmptyObject,
-  IsNumberString,
   IsObject,
   IsString,
   ValidateNested,
@@ -14,7 +13,6 @@ import {
 export class ServiceDto {
   @ApiProperty()
   @IsNotEmpty()
-  @IsNumberString()
   serviceTypeId: string;
 
   @ApiProperty()
@@ -38,7 +36,6 @@ export class QuoteDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsNumberString()
   eventId: string;
 
   @ApiProperty()
