@@ -18,8 +18,6 @@ export class CatalogService {
     private readonly serviceTypeService: ServiceTypeService,
   ) {}
 
-  // create empty catalog porque es la única manera de crear que habrá
-  // teóricamente llamar este servicio al crear usuario @Luna-Hazuki2006
   async create(providerId: string) {
     const existingCatalog = await this.catalogModel
       .findOne({ providerId })
@@ -51,28 +49,33 @@ export class CatalogService {
   }
 
   async findCatalogByProviderId(
-    providerId: string,
+    providerId: number,
   ): Promise<{ catalog: CatalogDocument; serviceTypes: ServiceType[] }> {
-    const catalog = await this.findByProviderId(providerId);
-    const serviceTypes = await this.listUsedServiceTypes(providerId);
+    const providerIdString = providerId.toString();
+
+    const catalog = await this.findByProviderId(providerIdString);
+
+    const serviceTypes = await this.listUsedServiceTypes(providerIdString);
 
     return { catalog, serviceTypes };
   }
 
   async updateDescription(
-    providerId: string,
+    providerId: number,
     dto: UpdateCatalogDto,
   ): Promise<CatalogDocument> {
-    const catalog = await this.findByProviderId(providerId);
+    const providerIdString = providerId.toString();
+    const catalog = await this.findByProviderId(providerIdString);
     catalog.description = dto.description;
     return catalog.save();
   }
 
   async addService(
-    providerId: string,
+    providerId: number,
     dto: AddServiceDto,
   ): Promise<CatalogDocument> {
-    const catalog = await this.findByProviderId(providerId);
+    const providerIdString = providerId.toString();
+    const catalog = await this.findByProviderId(providerIdString);
     const serviceExists = catalog.services.some((s) => s.name === dto.name);
 
     if (serviceExists) {
@@ -86,10 +89,11 @@ export class CatalogService {
   }
 
   async removeService(
-    providerId: string,
+    providerId: number,
     name: string,
   ): Promise<CatalogDocument> {
-    const catalog = await this.findByProviderId(providerId);
+    const providerIdString = providerId.toString();
+    const catalog = await this.findByProviderId(providerIdString);
     const initialLength = catalog.services.length;
 
     catalog.services = catalog.services.filter(
@@ -105,11 +109,12 @@ export class CatalogService {
   }
 
   async updateService(
-    providerId: string,
+    providerId: number,
     name: string,
     dto: Partial<AddServiceDto>,
   ): Promise<CatalogDocument> {
-    const catalog = await this.findByProviderId(providerId);
+    const providerIdString = providerId.toString();
+    const catalog = await this.findByProviderId(providerIdString);
     const serviceToUpdate = catalog.services.find((s) => s.name === name);
 
     if (!serviceToUpdate) {

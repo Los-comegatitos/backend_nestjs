@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Controller,
   Get,
@@ -6,68 +7,95 @@ import {
   Param,
   Patch,
   Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { CatalogService } from './catalog.service';
 import { UpdateCatalogDto } from './dto/update-catalog.dto';
 import { AddServiceDto } from './dto/add-service.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { Role } from 'src/auth/roles.enum';
+import { Request } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+// @UseGuards(new JwtAuthGuard())
 @Controller('catalog')
+@ApiBearerAuth()
 export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}
 
   // Por ahora en controller por motivos de prueba, pero no debe existir como endpoint
-  @ApiBearerAuth()
   @Post('add/:providerId')
   async addCatalog(@Param('providerId') providerId: string) {
     return await this.catalogService.create(providerId);
   }
   // -----------------------------------------------------------------------------
 
-  @ApiBearerAuth()
-  @Get(':providerId')
-  async findOneByProviderId(@Param('providerId') providerId: string) {
-    return await this.catalogService.findCatalogByProviderId(providerId);
+  @Roles(Role.Provider)
+  @Get()
+  async findOneByProviderId(@Req() datos: Request) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    return await this.catalogService.findCatalogByProviderId(userId);
   }
 
-  @ApiBearerAuth()
-  @Patch(':providerId/description')
+  @Roles(Role.Provider)
+  @Patch()
   async updateDescription(
-    @Param('providerId') providerId: string,
+    @Req() datos: Request,
     @Body() dto: UpdateCatalogDto,
   ) {
-    return await this.catalogService.updateDescription(providerId, dto);
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    return await this.catalogService.updateDescription(userId, dto);
   }
 
-  @ApiBearerAuth()
-  @Post(':providerId/services')
-  async addService(
-    @Param('providerId') providerId: string,
-    @Body() dto: AddServiceDto,
-  ) {
-    return await this.catalogService.addService(providerId, dto);
+  @Roles(Role.Provider)
+  @Post('services')
+  async addService(@Req() datos: Request, @Body() dto: AddServiceDto) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    return await this.catalogService.addService(userId, dto);
   }
 
-  @ApiBearerAuth()
-  @Delete(':providerId/services/:serviceName')
+  @Roles(Role.Provider)
+  @Delete('services/:serviceName')
   async removeService(
-    @Param('providerId') providerId: string,
+    @Req() datos: Request,
     @Param('serviceName') serviceName: string,
   ) {
-    return await this.catalogService.removeService(providerId, serviceName);
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    return await this.catalogService.removeService(userId, serviceName);
   }
 
-  @ApiBearerAuth()
-  @Patch(':providerId/services/:serviceName')
+  @Roles(Role.Provider)
+  @Patch('services/:serviceName')
   async updateService(
-    @Param('providerId') providerId: string,
+    @Req() datos: Request,
     @Param('serviceName') serviceName: string,
     @Body() dto: Partial<AddServiceDto>,
   ) {
-    return await this.catalogService.updateService(
-      providerId,
-      serviceName,
-      dto,
-    );
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    return await this.catalogService.updateService(userId, serviceName, dto);
   }
 }

@@ -4,9 +4,10 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { User } from './user.entity';
 import { User_Type } from '../user_type/user_type.entity';
+import { CatalogModule } from 'src/catalog/catalog.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, User_Type])],
+  imports: [TypeOrmModule.forFeature([User, User_Type]), CatalogModule],
   providers: [UserService],
   controllers: [UserController],
   exports: [UserService],
