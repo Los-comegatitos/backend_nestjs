@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Get,
@@ -12,7 +13,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { QuoteService } from './quote.service';
 
-@Controller('quote')
+@Controller()
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class QuoteController {
   constructor(private readonly quoteService: QuoteService) {}
