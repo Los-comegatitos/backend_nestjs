@@ -43,7 +43,6 @@ export class QuoteDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsNumberString()
   toServiceId: string;
 
   @ApiProperty()
