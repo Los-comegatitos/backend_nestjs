@@ -20,6 +20,8 @@ const QuoteSchema = SchemaFactory.createForClass(Quote);
 @Schema()
 export class Service {
   @Prop()
+  id: string;
+  @Prop()
   dueDate: Date;
   @Prop()
   serviceTypeId: string;

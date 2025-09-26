@@ -1,18 +1,22 @@
 import {
   Controller,
   Get,
-  Request,
   UseGuards,
   Param,
   Query,
+  Post,
+  Body,
+  Req,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { QuoteService } from './quote.service';
+import { QuoteDto } from './quote.dto';
+import { Request } from 'express';
 
-@Controller()
+@Controller('quote')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class QuoteController {
   constructor(private readonly quoteService: QuoteService) {}
@@ -30,7 +34,7 @@ export class QuoteController {
   @Get('received/:eventId')
   @Roles(Role.Organizer)
   async getReceivedQuotesByEvent(
-    @Request() req: { user: { userId: number; role: Role; email: string } },
+    @Req() req: { user: { userId: number; role: Role; email: string } },
     @Param('eventId') eventId: string,
   ) {
     const organizerId = req.user.userId;
@@ -50,5 +54,16 @@ export class QuoteController {
       Number(providerId),
       status,
     );
+  }
+
+  @Post('send')
+  @Roles(Role.Provider)
+  async sendQuotes(@Req() data: Request, @Body() createQuote: QuoteDto) {
+    const { userId } = data.user as {
+      userId: number;
+      role: Role;
+      email: string;
+    };
+    return this.quoteService.sendQuotes(createQuote, userId);
   }
 }
