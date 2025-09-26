@@ -30,7 +30,12 @@ export class EventController {
     type: Event,
   })
   async create(@Body() createEventDto: CreateEventDto) {
-    return await this.eventService.create(createEventDto);
+    const event = await this.eventService.create(createEventDto);
+    return {
+      message: '000',
+      description: 'Evento creado correctamente',
+      data: event,
+    };
   }
 
   @ApiBearerAuth()
@@ -38,7 +43,8 @@ export class EventController {
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Listar todos los eventos' })
   @ApiResponse({ status: 200, description: 'Lista de eventos', type: [Event] })
-  async findAll() {
+  async findAll(): Promise<Event[]> {
+    // Devuelve un array directamente para que el frontend pueda hacer map
     return await this.eventService.findAll();
   }
 
@@ -46,35 +52,25 @@ export class EventController {
   @Put(':eventId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Modificar un evento' })
-  @ApiParam({ name: 'eventId', type: String, description: 'ID del evento' })
+  @ApiParam({ name: 'eventId', type: Number, description: 'ID del evento' })
   @ApiBody({ type: UpdateEventDto })
   @ApiResponse({ status: 200, description: 'Evento actualizado', type: Event })
   async update(
     @Param('eventId') id: string,
     @Body() updateEventDto: UpdateEventDto,
   ) {
-    return await this.eventService.update(id, updateEventDto);
+    const event = await this.eventService.update(Number(id), updateEventDto);
+    return { message: '000', description: 'Evento actualizado', data: event };
   }
 
   @ApiBearerAuth()
   @Patch(':eventId/finalize')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Finalizar un evento' })
-  @ApiParam({ name: 'eventId', type: String, description: 'ID del evento' })
+  @ApiParam({ name: 'eventId', type: Number, description: 'ID del evento' })
   @ApiResponse({ status: 200, description: 'Evento finalizado', type: Event })
   async finalize(@Param('eventId') id: string) {
-    return await this.eventService.finalize(id);
+    const event = await this.eventService.finalize(Number(id));
+    return { message: '000', description: 'Evento finalizado', data: event };
   }
-
-  /*@Get(':id/providers')
-  @ApiOperation({ summary: 'Listar proveedores (usuarios con rol proveedor) asociados a un evento' })
-  @ApiParam({ name: 'id', type: String, description: 'ID del evento' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de usuarios que son proveedores para este evento',
-    type: [User],
-  })
-  async getProviders(@Param('id') id: string) {
-    return await this.eventService.getProviders(id);
-  }*/
 }

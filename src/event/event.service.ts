@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event } from './event.document';
@@ -21,26 +17,27 @@ export class EventService {
   ) {}
 
   async create(createEventDto: CreateEventDto): Promise<Event> {
-    const existingEvent = await this.eventModel.findOne({
-      eventId: createEventDto.eventId,
-    });
-    if (existingEvent) {
-      throw new ConflictException(
-        `El eventId "${createEventDto.eventId}" ya existe`,
-      );
-    }
-
     const eventType = await this.eventTypeRepository.findOne({
       where: { id: createEventDto.eventTypeId },
     });
-
     if (!eventType) {
       throw new NotFoundException(
         `EventType con id ${createEventDto.eventTypeId} no existe`,
       );
     }
 
-    const createdEvent = new this.eventModel(createEventDto);
+    const lastEvent = await this.eventModel
+      .findOne()
+      .sort({ eventId: -1 })
+      .exec();
+    const nextEventId = lastEvent ? lastEvent.eventId + 1 : 1;
+
+    const createdEvent = new this.eventModel({
+      ...createEventDto,
+      eventId: nextEventId,
+      status: 'in progress',
+    });
+
     return createdEvent.save();
   }
 
@@ -49,14 +46,13 @@ export class EventService {
   }
 
   async update(
-    eventId: string,
+    eventId: number,
     updateEventDto: UpdateEventDto,
   ): Promise<Event> {
     if (updateEventDto.eventTypeId) {
       const eventType = await this.eventTypeRepository.findOne({
         where: { id: updateEventDto.eventTypeId },
       });
-
       if (!eventType) {
         throw new NotFoundException(
           `EventType con id ${updateEventDto.eventTypeId} no existe`,
@@ -71,12 +67,15 @@ export class EventService {
     );
 
     if (!updatedEvent) {
-      throw new NotFoundException(`Event with eventId "${eventId}" not found`);
+      throw new NotFoundException(
+        `Event con eventId "${eventId}" no encontrado`,
+      );
     }
+
     return updatedEvent;
   }
 
-  async finalize(eventId: string): Promise<Event> {
+  async finalize(eventId: number): Promise<Event> {
     const event = await this.eventModel.findOneAndUpdate(
       { eventId },
       { status: 'finalized' },
