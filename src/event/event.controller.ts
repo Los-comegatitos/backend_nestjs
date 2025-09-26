@@ -1,7 +1,18 @@
-import { Controller, Get, Post, Body, Param, Put, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Patch,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { Request } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -13,9 +24,11 @@ import {
 import { Event } from './event.document';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
-
+import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
 @ApiTags('Events')
 @Controller('events')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
@@ -64,6 +77,21 @@ export class EventController {
   @ApiResponse({ status: 200, description: 'Evento finalizado', type: Event })
   async finalize(@Param('eventId') id: string) {
     return await this.eventService.finalize(id);
+  }
+
+  @Roles(Role.Provider)
+  @Get('for-provider')
+  @ApiOperation({
+    summary:
+      'Listar los eventos para proveedores (según los requisitos necesarios para que sean mostrados)',
+  })
+  async findOneByProviderId(@Req() datos: Request) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    return await this.eventService.findEventsForProvider(userId);
   }
 
   /*@Get(':id/providers')
