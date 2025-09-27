@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { CatalogService } from './catalog.service';
 import { UpdateCatalogDto } from './dto/update-catalog.dto';
-import { AddServiceDto } from './dto/add-service.dto';
+import { AddCatalogServiceDto } from './dto/add-catalog-service.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
@@ -60,7 +60,7 @@ export class CatalogController {
 
   @Roles(Role.Provider)
   @Post('services')
-  async addService(@Req() datos: Request, @Body() dto: AddServiceDto) {
+  async addService(@Req() datos: Request, @Body() dto: AddCatalogServiceDto) {
     const { userId } = datos.user as {
       userId: number;
       email: string;
@@ -88,7 +88,7 @@ export class CatalogController {
   async updateService(
     @Req() datos: Request,
     @Param('serviceName') serviceName: string,
-    @Body() dto: Partial<AddServiceDto>,
+    @Body() dto: Partial<AddCatalogServiceDto>,
   ) {
     const { userId } = datos.user as {
       userId: number;
