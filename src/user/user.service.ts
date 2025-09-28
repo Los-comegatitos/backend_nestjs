@@ -24,27 +24,27 @@ export class UserService {
   ) {}
 
   async create(dto: CreateUserDto, requesterRole?: Role) {
-    if (!dto) throw new ConflictException('No data provided');
+    if (!dto)
+      throw new ConflictException('No se ha ingresado ninguna información');
 
     const birthDate = new Date(dto.birthDate);
     if (isNaN(birthDate.getTime()))
-      throw new ConflictException('Invalid birthDate');
+      throw new ConflictException('Fecha de nacimiento inválida');
 
     const age =
       new Date(Date.now() - birthDate.getTime()).getUTCFullYear() - 1970;
     if (age < 18)
-      throw new ConflictException('User must be at least 18 years old');
+      throw new ConflictException('El usuario debe tener al menos 18 años');
 
     const emailExists = await this.userRepo.findOne({
       where: { email: dto.email },
     });
-    if (emailExists) throw new ConflictException('Email already registered');
+    if (emailExists) throw new ConflictException('Email ya registrado');
 
     const phoneExists = await this.userRepo.findOne({
       where: { telephone: dto.telephone },
     });
-    if (phoneExists)
-      throw new ConflictException('Telephone already registered');
+    if (phoneExists) throw new ConflictException('Teléfono ya registrado');
 
     const typeUser = await this.getTypeUser(dto.user_Typeid);
 
@@ -52,7 +52,7 @@ export class UserService {
       typeUser.name.toLowerCase() === Role.Admin.toLowerCase() &&
       requesterRole?.toLowerCase() !== Role.Admin.toLowerCase()
     ) {
-      throw new ConflictException('Only an admin can register another admin');
+      throw new ConflictException('Solo un admin puede registrar otro admin');
     }
 
     const hashedPassword = await bcrypt.hash(
