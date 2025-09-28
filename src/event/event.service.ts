@@ -226,7 +226,6 @@ export class EventService {
         'Cannot remove a service that already has a quote.',
       );
     }
-
     //
     event.services.pull({ name: serviceName });
 
