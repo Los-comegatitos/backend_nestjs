@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 
-export class AddServiceDto {
+export class AddCatalogServiceDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
