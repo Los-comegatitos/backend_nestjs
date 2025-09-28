@@ -34,16 +34,26 @@ import { AddServiceDto } from './dto/event-service.dto';
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
+  @Roles(Role.Provider)
+  @Get('for-providerr')
+  @ApiOperation({
+    summary:
+      'Listar los eventos para proveedores (según los requisitos necesarios para que sean mostrados)',
+  })
+  async findOneByProviderId(@Req() datos: Request) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    return await this.eventService.findEventsForProvider(userId);
+  }
+
   @ApiBearerAuth()
   @Post()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Crear un nuevo evento' })
   @ApiBody({ type: CreateEventDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Evento creado correctamente',
-    type: Event,
-  })
   async create(@Body() createEventDto: CreateEventDto, @Req() datos: Request) {
     const { userId } = datos.user as {
       userId: number;
@@ -51,18 +61,13 @@ export class EventController {
       role: string;
     };
     const event = await this.eventService.create(createEventDto, userId);
-    return {
-      message: '000',
-      description: 'Evento creado correctamente',
-      data: event,
-    };
+    return event;
   }
 
   @ApiBearerAuth()
   @Get()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Listar todos los eventos de un organizador' })
-  @ApiResponse({ status: 200, description: 'Lista de eventos', type: [Event] })
   async findAll(@Req() datos: Request): Promise<Event[]> {
     const { userId } = datos.user as {
       userId: number;
@@ -92,10 +97,29 @@ export class EventController {
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Finalizar un evento' })
   @ApiParam({ name: 'eventId', type: Number, description: 'ID del evento' })
-  @ApiResponse({ status: 200, description: 'Evento finalizado', type: Event })
-  async finalize(@Param('eventId') id: string) {
-    const event = await this.eventService.finalize(Number(id));
-    return { message: '000', description: 'Evento finalizado', data: event };
+  async finalize(@Param('eventId') id: string, @Req() datos: Request) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    const event = await this.eventService.finalize(Number(id), userId);
+    return event;
+  }
+
+  @ApiBearerAuth()
+  @Patch(':eventId/cancel')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Cancelar un evento' })
+  @ApiParam({ name: 'eventId', type: Number, description: 'ID del evento' })
+  async cancel(@Param('eventId') id: string, @Req() datos: Request) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    const event = await this.eventService.cancelEvent(Number(id), userId);
+    return event;
   }
 
   @Roles(Role.Organizer)
@@ -139,21 +163,6 @@ export class EventController {
     @Param('serviceName') serviceName: string,
   ) {
     return await this.eventService.removeService(eventId, serviceName);
-  }
-
-  @Roles(Role.Provider)
-  @Get('for-provider')
-  @ApiOperation({
-    summary:
-      'Listar los eventos para proveedores (según los requisitos necesarios para que sean mostrados)',
-  })
-  async findOneByProviderId(@Req() datos: Request) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
-    return await this.eventService.findEventsForProvider(userId);
   }
 
   /*@Get(':id/providers')

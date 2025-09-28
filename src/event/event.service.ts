@@ -100,16 +100,36 @@ export class EventService {
     return updatedEvent;
   }
 
-  async finalize(eventId: number): Promise<Event> {
+  async finalize(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
     const event = await this.eventModel.findOneAndUpdate(
-      { eventId },
+      { eventId: eventId, organizerUserId: organizerIdString },
       { status: 'finalized' },
       { new: true },
     );
 
     if (!event) {
       throw new NotFoundException(
-        `Event con eventId "${eventId}" no encontrado`,
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
+      );
+    }
+
+    return event;
+  }
+
+  async cancelEvent(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    const event = await this.eventModel.findOneAndUpdate(
+      { eventId: eventId, organizerUserId: organizerIdString },
+      { status: 'canceled' },
+      { new: true },
+    );
+
+    if (!event) {
+      throw new NotFoundException(
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
       );
     }
 
