@@ -26,11 +26,6 @@ class ClientDto {
 }
 
 export class CreateEventDto {
-  @ApiProperty({ example: '1' })
-  @IsOptional()
-  @IsNumber()
-  eventId?: number;
-
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -41,7 +36,7 @@ export class CreateEventDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ type: String, example: '2025-12-31T23:59:59Z' })
+  @ApiProperty({ type: Date, example: '2025-12-31T23:59:59Z' })
   @IsDateString()
   eventDate: Date;
 
