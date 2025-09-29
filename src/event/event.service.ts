@@ -37,7 +37,7 @@ export class EventService {
     });
     if (!eventType) {
       throw new NotFoundException(
-        `EventType con id ${createEventDto.eventTypeId} no existe`,
+        `El tipo de evento con id ${createEventDto.eventTypeId} no existe`,
       );
     }
 
@@ -80,7 +80,7 @@ export class EventService {
       });
       if (!eventType) {
         throw new NotFoundException(
-          `EventType con id ${updateEventDto.eventTypeId} no existe`,
+          `El tipo de evento con id ${updateEventDto.eventTypeId} no existe`,
         );
       }
     }
@@ -93,7 +93,7 @@ export class EventService {
 
     if (!updatedEvent) {
       throw new NotFoundException(
-        `Event con eventId "${eventId}" no encontrado`,
+        `El evento con eventId "${eventId}" no encontrado`,
       );
     }
 

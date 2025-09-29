@@ -22,7 +22,7 @@ export class ServiceTypeService {
     });
     if (exists) {
       throw new BadRequestException(
-        `Service Type with name "${dto.name}" already exists`,
+        `El tipo de servicio con el nombre "${dto.name}" ya existe`,
       );
     }
 
