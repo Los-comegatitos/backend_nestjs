@@ -7,7 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Catalog, CatalogDocument } from './catalog.document';
 import { UpdateCatalogDto } from './dto/update-catalog.dto';
-import { AddServiceDto } from './dto/add-service.dto';
+import { AddCatalogServiceDto } from './dto/add-catalog-service.dto';
 import { ServiceTypeService } from 'src/service_type/service_type.service';
 import { ServiceType } from 'src/service_type/service_type.entity';
 
@@ -72,7 +72,7 @@ export class CatalogService {
 
   async addService(
     providerId: number,
-    dto: AddServiceDto,
+    dto: AddCatalogServiceDto,
   ): Promise<CatalogDocument> {
     const providerIdString = providerId.toString();
     const catalog = await this.findByProviderId(providerIdString);
@@ -111,7 +111,7 @@ export class CatalogService {
   async updateService(
     providerId: number,
     name: string,
-    dto: Partial<AddServiceDto>,
+    dto: Partial<AddCatalogServiceDto>,
   ): Promise<CatalogDocument> {
     const providerIdString = providerId.toString();
     const catalog = await this.findByProviderId(providerIdString);
