@@ -33,14 +33,16 @@ export class UserController {
   @Post()
   async create(@Body() dto: CreateUserDto) {
     if (!dto || dto.user_Typeid === undefined) {
-      throw new ConflictException('Missing user type or body');
+      throw new ConflictException(
+        'Falta información del tipo de usuario o general',
+      );
     }
 
     const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
 
     if (typeUser.name.toLowerCase() === Role.Admin.toLowerCase()) {
       throw new ConflictException(
-        'Cannot create an Admin from the public endpoint',
+        'No se puede crear un Admin desde el endpoint público',
       );
     }
 
@@ -54,7 +56,7 @@ export class UserController {
     const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
 
     if (typeUser.name.toLowerCase() !== Role.Admin.toLowerCase()) {
-      throw new ConflictException('Only Admin type can be created here');
+      throw new ConflictException('Solo se puede crear un tipo Admin aquí');
     }
 
     return await this.userService.create(dto, req.user.role);
@@ -82,7 +84,8 @@ export class UserController {
   @Get(':id')
   async findById(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.findById(id);
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    if (!user)
+      throw new NotFoundException(`El usuario con ID ${id} no fue encontrado`);
     return user;
   }
 }

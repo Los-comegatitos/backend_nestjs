@@ -22,7 +22,7 @@ export class ClientTypeService {
     });
     if (exists) {
       throw new BadRequestException(
-        `Client type with name "${dto.name}" already exists`,
+        `El tipo de cliente con el nombre "${dto.name}" ya existe`,
       );
     }
 
@@ -36,13 +36,15 @@ export class ClientTypeService {
 
   async findOneByName(name: string) {
     const typeclient = await this.clientTypeRepo.findOneBy({ name });
-    if (!typeclient) throw new NotFoundException('Client type not found');
+    if (!typeclient)
+      throw new NotFoundException('No se encontró el tipo de cliente');
     return typeclient;
   }
 
   async findOne(id: number): Promise<ClientType> {
     const typeclient = await this.clientTypeRepo.findOne({ where: { id } });
-    if (!typeclient) throw new NotFoundException('Client type not found');
+    if (!typeclient)
+      throw new NotFoundException('No se encontró el tipo de cliente');
     return typeclient;
   }
 
@@ -55,7 +57,7 @@ export class ClientTypeService {
       });
       if (exists) {
         throw new BadRequestException(
-          `Type Client with name "${dto.name}" already exists`,
+          `El tipo de cliente con el nombre "${dto.name}" ya existe`,
         );
       }
     }
@@ -67,6 +69,6 @@ export class ClientTypeService {
   async remove(id: number): Promise<{ message: string }> {
     const typeclient = await this.findOne(id);
     await this.clientTypeRepo.remove(typeclient);
-    return { message: 'Client type deleted successfully' };
+    return { message: 'El tipo de cliente fue eliminado exitosamente' };
   }
 }
