@@ -5,7 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 @Catch()
 export class ErrorFilter implements ExceptionFilter {
@@ -13,8 +13,15 @@ export class ErrorFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    // Para que vean la info en la consola ya que el handler se está volando info pero anyways esto no debemos mostrárselo al usuario de todas maneras.
-    console.log('exceptioooooooon', exception);
+    // lógica copiada de por ahí para tener mejor detalles del error antes de volverme loca.
+    const request = ctx.getRequest<Request>();
+    console.log('=== VALIDATION ERROR ===');
+    console.log('Endpoint:', request.method, request.url);
+    console.log('Body:', JSON.stringify(request.body, null, 2));
+    console.log('Params:', JSON.stringify(request.params, null, 2));
+    console.log('Query:', JSON.stringify(request.query, null, 2));
+    console.log('Exception:', exception);
+    console.log('========================');
 
     // Verifica que sea http exception para obtener status y message y sino no pues error interno por ahora
     const status =

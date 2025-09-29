@@ -27,9 +27,9 @@ export class EventService {
 
   async create(
     createEventDto: CreateEventDto,
-    providerId: number,
+    organizerId: number,
   ): Promise<Event> {
-    const providerIdString = providerId.toString();
+    const organizerIdString = organizerId.toString();
 
     // validacion eventType
     const eventType = await this.eventTypeRepository.findOne({
@@ -52,7 +52,7 @@ export class EventService {
 
     const createdEvent = new this.eventModel({
       ...createEventDto,
-      organizerUserId: providerIdString,
+      organizerUserId: organizerIdString,
       eventId: nextEventId,
       status: 'in progress',
     });
@@ -139,6 +139,7 @@ export class EventService {
   async findEventsByServiceTypes(
     serviceTypeIds: string[],
   ): Promise<FilteredEvent[]> {
+    console.log('serviceTypeIds', serviceTypeIds);
     const events: FilteredEvent[] = (await this.eventModel
       .aggregate([
         // match para eventos cuyos services.serviceTypeId hagan mach con alguno de los serviceTypeIds
@@ -165,6 +166,9 @@ export class EventService {
       ])
       .exec()) as FilteredEvent[];
     // as FilteredEvent porque es lo que describí en el project
+
+    console.log('events', events);
+
     return events;
   }
 
