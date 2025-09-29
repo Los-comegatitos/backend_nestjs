@@ -48,8 +48,4 @@ export class CreateEventDto {
   @ApiProperty()
   @IsNumber()
   eventTypeId: number;
-
-  @ApiProperty()
-  @IsNumber()
-  organizerUserId: number;
 }

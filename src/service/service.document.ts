@@ -26,6 +26,8 @@ export class Service {
   @Prop()
   serviceTypeId: string;
   @Prop()
+  serviceTypeName: string;
+  @Prop()
   name: string;
   @Prop()
   description: string;

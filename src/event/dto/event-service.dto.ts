@@ -10,6 +10,11 @@ export class AddServiceDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  serviceTypeName: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   name: string;
 
   @ApiProperty()
