@@ -91,7 +91,7 @@ export class UserService {
       where: { id },
       relations: ['typeuser'],
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('El usuario no fue encontrado');
 
     const { password: _password, ...rest } = user;
     return rest;
@@ -102,13 +102,13 @@ export class UserService {
       where: { email },
       relations: ['typeuser'],
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('El usuario no fue encontrado');
     return user;
   }
 
   async update(id: number, dto: UpdateUserDto) {
     const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('El usuario no fue encontrado');
 
     const updates: Partial<User> = { ...dto };
     if (dto.password) updates.password = await bcrypt.hash(dto.password, 10);
@@ -119,7 +119,8 @@ export class UserService {
       where: { id },
       relations: ['typeuser'],
     });
-    if (!updated) throw new NotFoundException('Updated user not found');
+    if (!updated)
+      throw new NotFoundException('El usuario actualizado no fue encontrado');
 
     const { password: _password, ...rest } = updated;
     return rest;
@@ -127,15 +128,16 @@ export class UserService {
 
   async delete(id: number) {
     const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('El usuario no fue encontrado');
 
     await this.userRepo.remove(user);
-    return { message: 'User deleted successfully' };
+    return { message: 'El usuario fue eliminado exitosamente' };
   }
 
   async getTypeUser(id: number): Promise<User_Type> {
     const typeUser = await this.usertypeRepo.findOne({ where: { id } });
-    if (!typeUser) throw new NotFoundException('User type not found');
+    if (!typeUser)
+      throw new NotFoundException('El tipo de usuario no fue encontrado');
     return typeUser;
   }
 }

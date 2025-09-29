@@ -41,7 +41,7 @@ export class ServiceTypeService {
   async findOneByName(name: string) {
     const servicetype = await this.serviceTypeRepository.findOneBy({ name });
     if (!servicetype)
-      throw new NotFoundException('Service type type not found');
+      throw new NotFoundException('El tipo de servicio no fue encontrado');
     return servicetype;
   }
 
@@ -49,7 +49,8 @@ export class ServiceTypeService {
     const servicetype = await this.serviceTypeRepository.findOne({
       where: { id },
     });
-    if (!servicetype) throw new NotFoundException('Service type not found');
+    if (!servicetype)
+      throw new NotFoundException('El tipo de servicio no fue encontrado');
     return servicetype;
   }
 
@@ -62,7 +63,7 @@ export class ServiceTypeService {
       });
       if (exists) {
         throw new BadRequestException(
-          `Service Type with name "${dto.name}" already exists`,
+          `Un tipo de servicio con el nombre "${dto.name}" ya existe`,
         );
       }
     }
@@ -74,6 +75,6 @@ export class ServiceTypeService {
   async remove(id: number): Promise<{ message: string }> {
     const typeservice = await this.findOne(id);
     await this.serviceTypeRepository.remove(typeservice);
-    return { message: 'Service type deleted successfully' };
+    return { message: 'El tipo de servicio fue eliminado exitosamente' };
   }
 }

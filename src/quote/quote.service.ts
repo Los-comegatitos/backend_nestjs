@@ -68,7 +68,7 @@ export class QuoteService {
 
     if (!eventType) {
       throw new NotFoundException(
-        `ServiceType con id ${serviceTypeId} no existe`,
+        `El tipo de servicio con el id ${serviceTypeId} no existe`,
       );
     }
 
@@ -76,7 +76,7 @@ export class QuoteService {
     const event = await this.eventService.findById(eventId);
 
     if (!event) {
-      throw new NotFoundException(`Event con id ${eventId} no existe`);
+      throw new NotFoundException(`El evento con el id ${eventId} no existe`);
     }
 
     let id = await this.serviceTypeService.findAmount();
@@ -100,7 +100,9 @@ export class QuoteService {
       .lean();
 
     if (!quotes.length) {
-      throw new NotFoundException('No pending quotes found for this event');
+      throw new NotFoundException(
+        'No se encontraron cotizaciones pendientes para este evento',
+      );
     }
 
     const grouped: Record<
@@ -155,7 +157,7 @@ export class QuoteService {
     const quotes = await this.quoteModel.find(filter).sort({ date: -1 }).lean();
 
     if (!quotes.length) {
-      throw new NotFoundException('No sent quotes found');
+      throw new NotFoundException('No se encontraron cotizaciones enviadas');
     }
 
     const grouped: Record<

@@ -22,7 +22,7 @@ export class EventTypeService {
     });
     if (exists) {
       throw new BadRequestException(
-        `EventType with name "${dto.name}" already exists`,
+        `Un tipo de evento con el nombre "${dto.name}" ya existe`,
       );
     }
 
@@ -36,13 +36,15 @@ export class EventTypeService {
 
   async findOneByName(name: string) {
     const typeclient = await this.eventTypeRepository.findOneBy({ name });
-    if (!typeclient) throw new NotFoundException('Event type not found');
+    if (!typeclient)
+      throw new NotFoundException('El tipo de evento no fue encontrado');
     return typeclient;
   }
 
   async findOne(id: number): Promise<EventType> {
     const eventType = await this.eventTypeRepository.findOne({ where: { id } });
-    if (!eventType) throw new NotFoundException('Event type not found');
+    if (!eventType)
+      throw new NotFoundException('El tipo de evento no fue encontrado');
     return eventType;
   }
 
@@ -55,7 +57,7 @@ export class EventTypeService {
       });
       if (exists) {
         throw new BadRequestException(
-          `EventType with name "${dto.name}" already exists`,
+          `Un tipo de evento con el nombre "${dto.name}" ya existe`,
         );
       }
     }
@@ -67,6 +69,6 @@ export class EventTypeService {
   async remove(id: number): Promise<{ message: string }> {
     const eventType = await this.findOne(id);
     await this.eventTypeRepository.remove(eventType);
-    return { message: 'Event Type deleted successfully' };
+    return { message: 'El tipo de evento fue eliminado exitosamente' };
   }
 }

@@ -183,7 +183,9 @@ export class EventService {
   async findById(eventId: string): Promise<EventDocument> {
     const event = await this.eventModel.findById(eventId);
     if (!event) {
-      throw new NotFoundException(`Event with id ${eventId} not found.`);
+      throw new NotFoundException(
+        `El evento con el id ${eventId} no fue encontrado.`,
+      );
     }
     return event;
   }
@@ -200,7 +202,7 @@ export class EventService {
 
     if (!event) {
       throw new NotFoundException(
-        `Event with id ${eventId} not found for user ${organizerIdString}.`,
+        `El evento con el id ${eventId} no fue encontrado para el usuario ${organizerIdString}.`,
       );
     }
 
@@ -214,13 +216,13 @@ export class EventService {
     const event = await this.eventModel.findOne({ eventId: eventId });
 
     if (!event) {
-      throw new BadRequestException("Event doesn't exists");
+      throw new BadRequestException('El evento no existe');
     }
 
     const exists = event.services.some((s) => s.name === dto.name);
     if (exists) {
       throw new BadRequestException(
-        'Service with this name already exists in the event.',
+        'Un servicio con este nombre ya existe en el evento.',
       );
     }
 
@@ -237,17 +239,19 @@ export class EventService {
     const event = await this.eventModel.findOne({ eventId: eventId });
 
     if (!event) {
-      throw new BadRequestException("Event doesn't exists");
+      throw new BadRequestException('El evento no existe.');
     }
 
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {
-      throw new NotFoundException('Service with this name not found.');
+      throw new NotFoundException(
+        'El servicio con este nombre no fue encontrado.',
+      );
     }
 
     if (service.quote) {
       throw new BadRequestException(
-        'Cannot remove a service that already has a quote.',
+        'No se puede eliminar un servicio que ya tiene una cotización.',
       );
     }
     //
@@ -264,17 +268,19 @@ export class EventService {
     const event = await this.eventModel.findOne({ eventId: eventId });
 
     if (!event) {
-      throw new BadRequestException("Event doesn't exists");
+      throw new BadRequestException('El evento no existe.');
     }
 
     const serviceToUpdate = event.services.find((s) => s.name === serviceName);
     if (!serviceToUpdate) {
-      throw new NotFoundException('Service with this name not found.');
+      throw new NotFoundException(
+        'El servicio con este nombre no fue encontrado.',
+      );
     }
 
     if (serviceToUpdate.quote) {
       throw new BadRequestException(
-        'Cannot modify a service that already has a quote.',
+        'No se puede modificar un servicio que ya tiene una cotización.',
       );
     }
 
@@ -297,11 +303,13 @@ export class EventService {
 
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {
-      throw new NotFoundException('Service with this name not found.');
+      throw new NotFoundException(
+        'El servicio con este nombre no fue encontrado.',
+      );
     }
 
     if (service.quote) {
-      throw new BadRequestException('Service already has a quote.');
+      throw new BadRequestException('El servicio ya tiene una cotización.');
     }
 
     service.quote = quoteDto;
