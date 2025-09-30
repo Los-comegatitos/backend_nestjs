@@ -24,27 +24,27 @@ export class UserService {
   ) {}
 
   async create(dto: CreateUserDto, requesterRole?: Role) {
-    if (!dto) throw new ConflictException('No data provided');
+    if (!dto)
+      throw new ConflictException('No se ha ingresado ninguna información');
 
     const birthDate = new Date(dto.birthDate);
     if (isNaN(birthDate.getTime()))
-      throw new ConflictException('Invalid birthDate');
+      throw new ConflictException('Fecha de nacimiento inválida');
 
     const age =
       new Date(Date.now() - birthDate.getTime()).getUTCFullYear() - 1970;
     if (age < 18)
-      throw new ConflictException('User must be at least 18 years old');
+      throw new ConflictException('El usuario debe tener al menos 18 años');
 
     const emailExists = await this.userRepo.findOne({
       where: { email: dto.email },
     });
-    if (emailExists) throw new ConflictException('Email already registered');
+    if (emailExists) throw new ConflictException('Email ya registrado');
 
     const phoneExists = await this.userRepo.findOne({
       where: { telephone: dto.telephone },
     });
-    if (phoneExists)
-      throw new ConflictException('Telephone already registered');
+    if (phoneExists) throw new ConflictException('Teléfono ya registrado');
 
     const typeUser = await this.getTypeUser(dto.user_Typeid);
 
@@ -52,7 +52,7 @@ export class UserService {
       typeUser.name.toLowerCase() === Role.Admin.toLowerCase() &&
       requesterRole?.toLowerCase() !== Role.Admin.toLowerCase()
     ) {
-      throw new ConflictException('Only an admin can register another admin');
+      throw new ConflictException('Solo un admin puede registrar otro admin');
     }
 
     const hashedPassword = await bcrypt.hash(
@@ -91,7 +91,7 @@ export class UserService {
       where: { id },
       relations: ['typeuser'],
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('El usuario no fue encontrado');
 
     const { password: _password, ...rest } = user;
     return rest;
@@ -102,13 +102,13 @@ export class UserService {
       where: { email },
       relations: ['typeuser'],
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('El usuario no fue encontrado');
     return user;
   }
 
   async update(id: number, dto: UpdateUserDto) {
     const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('El usuario no fue encontrado');
 
     const updates: Partial<User> = { ...dto };
     if (dto.password) updates.password = await bcrypt.hash(dto.password, 10);
@@ -119,7 +119,8 @@ export class UserService {
       where: { id },
       relations: ['typeuser'],
     });
-    if (!updated) throw new NotFoundException('Updated user not found');
+    if (!updated)
+      throw new NotFoundException('El usuario actualizado no fue encontrado');
 
     const { password: _password, ...rest } = updated;
     return rest;
@@ -127,15 +128,16 @@ export class UserService {
 
   async delete(id: number) {
     const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('El usuario no fue encontrado');
 
     await this.userRepo.remove(user);
-    return { message: 'User deleted successfully' };
+    return { message: 'El usuario fue eliminado exitosamente' };
   }
 
   async getTypeUser(id: number): Promise<User_Type> {
     const typeUser = await this.usertypeRepo.findOne({ where: { id } });
-    if (!typeUser) throw new NotFoundException('User type not found');
+    if (!typeUser)
+      throw new NotFoundException('El tipo de usuario no fue encontrado');
     return typeUser;
   }
 }

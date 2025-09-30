@@ -7,7 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Catalog, CatalogDocument } from './catalog.document';
 import { UpdateCatalogDto } from './dto/update-catalog.dto';
-import { AddServiceDto } from './dto/add-service.dto';
+import { AddCatalogServiceDto } from './dto/add-catalog-service.dto';
 import { ServiceTypeService } from 'src/service_type/service_type.service';
 import { ServiceType } from 'src/service_type/service_type.entity';
 
@@ -25,7 +25,7 @@ export class CatalogService {
 
     if (existingCatalog) {
       throw new BadRequestException(
-        `Catalog for provider ${providerId} already exists.`,
+        `El catálogo para el proveedor ${providerId} ya existe.`,
       );
     }
 
@@ -42,7 +42,7 @@ export class CatalogService {
     const catalog = await this.catalogModel.findOne({ providerId }).exec();
     if (!catalog) {
       throw new NotFoundException(
-        `Catalog for provider ${providerId} not found.`,
+        `El catálogo para el proveedor ${providerId} no fue encontrado.`,
       );
     }
     return catalog;
@@ -72,7 +72,7 @@ export class CatalogService {
 
   async addService(
     providerId: number,
-    dto: AddServiceDto,
+    dto: AddCatalogServiceDto,
   ): Promise<CatalogDocument> {
     const providerIdString = providerId.toString();
     const catalog = await this.findByProviderId(providerIdString);
@@ -80,7 +80,7 @@ export class CatalogService {
 
     if (serviceExists) {
       throw new BadRequestException(
-        'Service with this name already exists in the catalog.',
+        'Ya existe un servicio con este nombre en el catálogo.',
       );
     }
 
@@ -102,7 +102,7 @@ export class CatalogService {
 
     // como es lista y tal, pues si no filtró nada evidentemente no se eliminó nada.
     if (catalog.services.length === initialLength) {
-      throw new NotFoundException('Service with this name not found.');
+      throw new NotFoundException('El nombre del servicio no fue encontrado.');
     }
 
     return catalog.save();
@@ -111,14 +111,16 @@ export class CatalogService {
   async updateService(
     providerId: number,
     name: string,
-    dto: Partial<AddServiceDto>,
+    dto: Partial<AddCatalogServiceDto>,
   ): Promise<CatalogDocument> {
     const providerIdString = providerId.toString();
     const catalog = await this.findByProviderId(providerIdString);
     const serviceToUpdate = catalog.services.find((s) => s.name === name);
 
     if (!serviceToUpdate) {
-      throw new NotFoundException('Service with this name not found.');
+      throw new NotFoundException(
+        'El servicio con este nombre no fue encontrado.',
+      );
     }
     Object.assign(serviceToUpdate, dto);
     return catalog.save();

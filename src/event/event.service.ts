@@ -14,6 +14,7 @@ import { Repository } from 'typeorm';
 import { CatalogService } from 'src/catalog/catalog.service';
 import { FilteredEvent } from './event.interfaces';
 import { Service } from 'src/service/service.document';
+import { AddServiceDto } from './dto/event-service.dto';
 
 @Injectable()
 export class EventService {
@@ -24,15 +25,24 @@ export class EventService {
     private readonly catalogService: CatalogService,
   ) {}
 
-  async create(createEventDto: CreateEventDto): Promise<Event> {
+  async create(
+    createEventDto: CreateEventDto,
+    organizerId: number,
+  ): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    // validacion eventType
     const eventType = await this.eventTypeRepository.findOne({
       where: { id: createEventDto.eventTypeId },
     });
     if (!eventType) {
       throw new NotFoundException(
-        `EventType con id ${createEventDto.eventTypeId} no existe`,
+        `El tipo de evento con id ${createEventDto.eventTypeId} no existe`,
       );
     }
+
+    // TODO debería aquí validación clientType
+    //
 
     const lastEvent = await this.eventModel
       .findOne()
@@ -42,6 +52,7 @@ export class EventService {
 
     const createdEvent = new this.eventModel({
       ...createEventDto,
+      organizerUserId: organizerIdString,
       eventId: nextEventId,
       status: 'in progress',
     });
@@ -51,6 +62,12 @@ export class EventService {
 
   async findAll(): Promise<Event[]> {
     return this.eventModel.find().exec();
+  }
+
+  async findAllOrganizer(organizerId: number): Promise<Event[]> {
+    const organizerIdString = organizerId.toString();
+
+    return this.eventModel.find({ organizerUserId: organizerIdString }).exec();
   }
 
   async update(
@@ -63,7 +80,7 @@ export class EventService {
       });
       if (!eventType) {
         throw new NotFoundException(
-          `EventType con id ${updateEventDto.eventTypeId} no existe`,
+          `El tipo de evento con id ${updateEventDto.eventTypeId} no existe`,
         );
       }
     }
@@ -76,23 +93,43 @@ export class EventService {
 
     if (!updatedEvent) {
       throw new NotFoundException(
-        `Event con eventId "${eventId}" no encontrado`,
+        `El evento con eventId "${eventId}" no encontrado`,
       );
     }
 
     return updatedEvent;
   }
 
-  async finalize(eventId: number): Promise<Event> {
+  async finalize(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
     const event = await this.eventModel.findOneAndUpdate(
-      { eventId },
+      { eventId: eventId, organizerUserId: organizerIdString },
       { status: 'finalized' },
       { new: true },
     );
 
     if (!event) {
       throw new NotFoundException(
-        `Event con eventId "${eventId}" no encontrado`,
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
+      );
+    }
+
+    return event;
+  }
+
+  async cancelEvent(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    const event = await this.eventModel.findOneAndUpdate(
+      { eventId: eventId, organizerUserId: organizerIdString },
+      { status: 'canceled' },
+      { new: true },
+    );
+
+    if (!event) {
+      throw new NotFoundException(
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
       );
     }
 
@@ -102,6 +139,7 @@ export class EventService {
   async findEventsByServiceTypes(
     serviceTypeIds: string[],
   ): Promise<FilteredEvent[]> {
+    console.log('serviceTypeIds', serviceTypeIds);
     const events: FilteredEvent[] = (await this.eventModel
       .aggregate([
         // match para eventos cuyos services.serviceTypeId hagan mach con alguno de los serviceTypeIds
@@ -128,6 +166,9 @@ export class EventService {
       ])
       .exec()) as FilteredEvent[];
     // as FilteredEvent porque es lo que describí en el project
+
+    console.log('events', events);
+
     return events;
   }
 
@@ -142,21 +183,46 @@ export class EventService {
   async findById(eventId: string): Promise<EventDocument> {
     const event = await this.eventModel.findById(eventId);
     if (!event) {
-      throw new NotFoundException('Event not found.');
+      throw new NotFoundException(
+        `El evento con el id ${eventId} no fue encontrado.`,
+      );
     }
+    return event;
+  }
+
+  async findByIdValidated(
+    eventId: string,
+    organizerId: number,
+  ): Promise<EventDocument> {
+    const organizerIdString = organizerId.toString();
+    const event = await this.eventModel.findOne({
+      eventId: eventId,
+      organizerUserId: organizerIdString,
+    });
+
+    if (!event) {
+      throw new NotFoundException(
+        `El evento con el id ${eventId} no fue encontrado para el usuario ${organizerIdString}.`,
+      );
+    }
+
     return event;
   }
 
   async addService(
     eventId: string,
-    dto: Partial<Service>,
+    dto: AddServiceDto,
   ): Promise<EventDocument> {
-    const event = await this.findById(eventId);
+    const event = await this.eventModel.findOne({ eventId: eventId });
+
+    if (!event) {
+      throw new BadRequestException('El evento no existe');
+    }
 
     const exists = event.services.some((s) => s.name === dto.name);
     if (exists) {
       throw new BadRequestException(
-        'Service with this name already exists in the event.',
+        'Un servicio con este nombre ya existe en el evento.',
       );
     }
 
@@ -170,27 +236,26 @@ export class EventService {
     eventId: string,
     serviceName: string,
   ): Promise<EventDocument> {
-    const event = await this.findById(eventId);
+    const event = await this.eventModel.findOne({ eventId: eventId });
+
+    if (!event) {
+      throw new BadRequestException('El evento no existe.');
+    }
 
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {
-      throw new NotFoundException('Service with this name not found.');
+      throw new NotFoundException(
+        'El servicio con este nombre no fue encontrado.',
+      );
     }
 
     if (service.quote) {
       throw new BadRequestException(
-        'Cannot remove a service that already has a quote.',
+        'No se puede eliminar un servicio que ya tiene una cotización.',
       );
     }
-
-    const initialLength = event.services.length;
-
-    // TODO filter pa fuera de service
-    // event.services = event.services.filter((s) => s.name !== serviceName);
-
-    if (event.services.length === initialLength) {
-      throw new NotFoundException('Service with this name not found.');
-    }
+    //
+    event.services.pull({ name: serviceName });
 
     return event.save();
   }
@@ -198,18 +263,24 @@ export class EventService {
   async updateService(
     eventId: string,
     serviceName: string,
-    dto: Partial<Service>,
+    dto: Partial<AddServiceDto>,
   ): Promise<EventDocument> {
-    const event = await this.findById(eventId);
+    const event = await this.eventModel.findOne({ eventId: eventId });
+
+    if (!event) {
+      throw new BadRequestException('El evento no existe.');
+    }
 
     const serviceToUpdate = event.services.find((s) => s.name === serviceName);
     if (!serviceToUpdate) {
-      throw new NotFoundException('Service with this name not found.');
+      throw new NotFoundException(
+        'El servicio con este nombre no fue encontrado.',
+      );
     }
 
     if (serviceToUpdate.quote) {
       throw new BadRequestException(
-        'Cannot modify a service that already has a quote.',
+        'No se puede modificar un servicio que ya tiene una cotización.',
       );
     }
 
@@ -232,11 +303,13 @@ export class EventService {
 
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {
-      throw new NotFoundException('Service with this name not found.');
+      throw new NotFoundException(
+        'El servicio con este nombre no fue encontrado.',
+      );
     }
 
     if (service.quote) {
-      throw new BadRequestException('Service already has a quote.');
+      throw new BadRequestException('El servicio ya tiene una cotización.');
     }
 
     service.quote = quoteDto;

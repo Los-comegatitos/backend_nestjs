@@ -22,7 +22,7 @@ export class UserTypeService {
     });
     if (existing) {
       throw new BadRequestException(
-        `UserType with name "${dto.name}" already exists`,
+        `El tipo de usuario con el nombre "${dto.name}" ya existe`,
       );
     }
 
@@ -37,7 +37,7 @@ export class UserTypeService {
   async update(id: number, dto: UpdateUserTypeDto): Promise<User_Type> {
     const typeuser = await this.userTypeRepository.findOne({ where: { id } });
     if (!typeuser) {
-      throw new NotFoundException('UserType not found');
+      throw new NotFoundException('El tipo de usuario no fue encontrado');
     }
 
     if (dto.name && dto.name !== typeuser.name) {
@@ -46,7 +46,7 @@ export class UserTypeService {
       });
       if (existing) {
         throw new BadRequestException(
-          `UserType with name "${dto.name}" already exists`,
+          `El tipo de usuario con el nombre "${dto.name}" ya existe`,
         );
       }
     }
