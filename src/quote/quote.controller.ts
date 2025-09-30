@@ -40,19 +40,6 @@ export class QuoteController {
     return this.quoteService.getPendingQuotesByOrganizer(organizerId);
   }
 
-  /*
-  @Get('received/:eventId')
-  @Roles(Role.Organizer)
-  async getReceivedQuotesByEvent(
-    @Req() req: ExpressRequest,
-    @Param('eventId') eventId: string,
-  ) {
-    const user = req.user as { userId: number; role: Role; email: string };
-    const organizerId = user.userId;
-    return this.quoteService.getPendingQuotesByEvent(organizerId, Number(eventId));
-  }
-  */
-
   @Get('sent/:providerId')
   @Roles(Role.Provider)
   async getSentQuotes(
