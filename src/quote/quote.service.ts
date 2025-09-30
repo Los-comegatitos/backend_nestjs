@@ -15,7 +15,7 @@ export class QuoteService {
     private readonly eventService: EventService,
   ) {}
 
-  /**async getPendingQuotesByOrganizer(organizerId: number) {
+  async getPendingQuotesByOrganizer(organizerId: number) {
     const quotes = await this.quoteModel
       .find({ status: 'pending', 'event.organizerId': organizerId })
       .sort({ date: -1 })
@@ -30,11 +30,14 @@ export class QuoteService {
       Array<{
         id: number;
         name: string;
+        description?: string;
         price: number;
         eventId: number;
         eventName?: string;
         date?: Date;
         quantity?: number;
+        providerId?: number;
+        status?: string;
       }>
     > = {};
 
@@ -60,7 +63,6 @@ export class QuoteService {
 
     return grouped;
   }
-  */
 
   async sendQuotes(body: QuoteDto, userId: number) {
     const serviceTypeId = parseInt(body.service.serviceTypeId);
@@ -87,12 +89,14 @@ export class QuoteService {
       providerId: userId,
       date: new Date(),
       status: 'pending',
-      id: id,
+      id,
     };
+
     const newQuote = new this.quoteModel(newData);
     void newQuote.save();
   }
 
+  /*
   async getPendingQuotesByEvent(organizerId: number, eventId: number) {
     const quotes = await this.quoteModel
       .find({ status: 'pending', eventId })
@@ -147,6 +151,7 @@ export class QuoteService {
 
     return grouped;
   }
+  */
 
   async getSentQuotesByProvider(providerId: number, status?: string) {
     const filter: Partial<Quote> & { providerId: number; status?: string } = {
