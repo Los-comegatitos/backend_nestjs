@@ -96,7 +96,6 @@ export class QuoteService {
     void newQuote.save();
   }
 
-  /*
   async getPendingQuotesByEvent(organizerId: number, eventId: number) {
     const quotes = await this.quoteModel
       .find({ status: 'pending', eventId })
@@ -151,7 +150,6 @@ export class QuoteService {
 
     return grouped;
   }
-  */
 
   async getSentQuotesByProvider(providerId: number, status?: string) {
     const filter: Partial<Quote> & { providerId: number; status?: string } = {
