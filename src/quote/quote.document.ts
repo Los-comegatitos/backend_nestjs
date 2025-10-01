@@ -16,6 +16,16 @@ export class Service {
 
 const ServiceSchema = SchemaFactory.createForClass(Service);
 
+@Schema()
+export class Event {
+  @Prop()
+  name: string;
+  @Prop()
+  organizerId: number;
+}
+
+const EventSchema = SchemaFactory.createForClass(Event);
+
 // Este es el quote en sí, no confundir con quotes que va anidado en Event.
 @Schema()
 export class Quote {
@@ -35,6 +45,8 @@ export class Quote {
   providerId: number;
   @Prop([ServiceSchema])
   service: Service;
+  @Prop([EventSchema])
+  event: Event;
   @Prop()
   status: string; // considerar luego enums?
 }

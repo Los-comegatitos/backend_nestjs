@@ -48,7 +48,7 @@ export class EventService {
       .findOne()
       .sort({ eventId: -1 })
       .exec();
-    const nextEventId = lastEvent ? lastEvent.eventId + 1 : 1;
+    const nextEventId = lastEvent ? `${parseInt(lastEvent.eventId) + 1}` : '1';
 
     const createdEvent = new this.eventModel({
       ...createEventDto,
