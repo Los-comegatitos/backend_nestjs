@@ -44,29 +44,72 @@ export class QuoteService {
         status?: string;
       }>
     > = {};
+    console.log(quotes);
 
-    quotes.forEach(
-      (quote: Quote & { service?: Service; event?: { name?: string } }) => {
-        const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-        const serviceName = quote.service?.name ?? 'Unknown service';
-        const eventName = quote.event?.name ?? 'Unnamed event';
+    // le cambié a forof porque no me daban los await :'v
 
-        if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
+    for (const quoteBasic of quotes) {
+      const quote = quoteBasic as Quote & {
+        service?: Service;
+        event?: { name?: string };
+      };
+      const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
+      const serviceName = quote.service?.name ?? 'Unknown service';
+      const eventName = quote.event?.name ?? 'Unnamed event';
 
-        grouped[serviceTypeId].push({
-          id: quote.id,
-          name: serviceName,
-          description: quote.service?.description,
-          price: quote.price,
-          eventId: quote.eventId,
-          eventName,
-          date: quote.date,
-          quantity: quote.quantity,
-          providerId: quote.providerId,
-          status: quote.status,
-        });
-      },
-    );
+      console.log('UNICO');
+      console.log(quote);
+      const serviceInfo = await this.serviceTypeService.findOne(
+        parseInt(serviceTypeId),
+      );
+      console.log(serviceInfo);
+
+      if (!grouped[serviceInfo.name]) grouped[serviceInfo.name] = [];
+
+      grouped[serviceInfo.name].push({
+        id: quote.id,
+        name: serviceName,
+        description: quote.service?.description,
+        price: quote.price,
+        eventId: quote.eventId,
+        eventName,
+        date: quote.date,
+        quantity: quote.quantity,
+        providerId: quote.providerId,
+        status: quote.status,
+      });
+    }
+
+    // quotes.forEach(
+    //   async (quote: Quote & { service?: Service; event?: { name?: string } }) => {
+    //     const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
+    //     const serviceName = quote.service?.name ?? 'Unknown service';
+    //     const eventName = quote.event?.name ?? 'Unnamed event';
+    //     console.log('UNICO');
+
+    //     // console.log(quote);
+
+    //     // const serviceInfo = await this.serviceTypeService.findOne(parseInt(serviceTypeId));
+    //     // console.log(serviceInfo);
+
+    //     if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
+
+    //     grouped[serviceTypeId].push({
+    //       id: quote.id,
+    //       name: serviceName,
+    //       description: quote.service?.description,
+    //       price: quote.price,
+    //       eventId: quote.eventId,
+    //       eventName,
+    //       date: quote.date,
+    //       quantity: quote.quantity,
+    //       providerId: quote.providerId,
+    //       status: quote.status,
+    //     });
+    //   },
+    // );
+
+    console.log(grouped);
 
     return grouped;
   }
