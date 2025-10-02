@@ -39,8 +39,8 @@ export class Quote {
   price: number;
   @Prop()
   eventId: number;
-  @Prop()
-  toServiceId: number;
+  @Prop({ type: String })
+  toServiceId: string;
   @Prop()
   providerId: number;
   @Prop([ServiceSchema])

@@ -202,6 +202,7 @@ export class EventService {
         },
         {
           $project: {
+            eventId: 1,
             name: 1,
             description: 1,
             eventDate: 1,
@@ -226,6 +227,16 @@ export class EventService {
 
   async findById(eventId: string): Promise<EventDocument> {
     const event = await this.eventModel.findById(eventId);
+    if (!event) {
+      throw new NotFoundException(
+        `El evento con el id ${eventId} no fue encontrado.`,
+      );
+    }
+    return event;
+  }
+
+  async findByStringId(eventId: string): Promise<EventDocument> {
+    const event = await this.eventModel.findOne({ eventId: eventId }).exec();
     if (!event) {
       throw new NotFoundException(
         `El evento con el id ${eventId} no fue encontrado.`,

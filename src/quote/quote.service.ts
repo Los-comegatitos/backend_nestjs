@@ -15,6 +15,10 @@ export class QuoteService {
     private readonly eventService: EventService,
   ) {}
 
+  async findAmount() {
+    return await this.quoteModel.countDocuments().exec();
+  }
+
   async getPendingQuotesByOrganizer(organizerId: number) {
     const quotes = await this.quoteModel
       .find({ status: 'pending', 'event.organizerId': organizerId })
@@ -131,14 +135,21 @@ export class QuoteService {
     }
 
     const eventId = body.eventId;
-    const event = await this.eventService.findById(eventId);
+    const event = await this.eventService.findByStringId(eventId);
 
     if (!event) {
       throw new NotFoundException(`Event con id ${eventId} no existe`);
     }
 
-    let id = await this.serviceTypeService.findAmount();
+    let id = await this.findAmount();
     id++;
+
+    const info = {
+      event: {
+        organizerId: event.organizerUserId,
+        name: event.name,
+      },
+    };
 
     const newData = {
       ...body,
@@ -146,6 +157,7 @@ export class QuoteService {
       date: new Date(),
       status: 'pending',
       id,
+      ...info,
     };
 
     const newQuote = new this.quoteModel(newData);
