@@ -21,11 +21,11 @@ export class User {
   @Column()
   email: string;
 
-  @Column()
-  telephone: string;
+  @Column({ nullable: true })
+  telephone?: string;
 
-  @Column()
-  birthDate: Date;
+  @Column({ nullable: true })
+  birthDate?: Date;
 
   @Column()
   password: string;

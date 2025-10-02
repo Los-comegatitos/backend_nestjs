@@ -80,6 +80,20 @@ export class UserController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(Role.Admin, Role.Provider, Role.Organizer)
+  @Get('profile')
+  async getProfile(@Request() req: RequestUser) {
+    const email = req.user.email;
+    const user = await this.userService.findByEmail(email);
+    if (!user)
+      throw new NotFoundException(
+        `Los datos de tu usuario no fueron encontrados`,
+      );
+    return user;
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get(':id')
   async findById(@Param('id', ParseIntPipe) id: number) {
