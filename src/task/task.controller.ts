@@ -105,14 +105,19 @@ export class TaskController {
   }
 
   @ApiBearerAuth()
-  @Delete('by-name/:taskName')
+  @Delete(':taskId')
   @Roles(Role.Organizer)
-  @ApiOperation({ summary: 'Delete task by name' })
-  async deleteByName(
+  @ApiOperation({ summary: 'Delete task by id' })
+  @ApiResponse({ status: 200, description: 'Task deleted', type: Task })
+  async delete(
     @Param('eventId') eventId: string,
-    @Param('taskName') taskName: string,
+    @Param('taskId') taskId: string,
   ) {
-    const task = await this.taskService.deleteTaskByName(eventId, taskName);
-    return { message: '000', description: 'Task deleted by name', data: task };
+    const task = await this.taskService.deleteTaskById(eventId, taskId);
+    return {
+      message: '000',
+      description: 'Task deleted successfully',
+      data: task,
+    };
   }
 }

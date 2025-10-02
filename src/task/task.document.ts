@@ -40,7 +40,7 @@ export class Task {
   @Prop()
   creationDate: Date;
 
-  @Prop({ type: Date })
+  @Prop({ type: Date, default: null })
   completionDate: Date | null;
 
   @Prop()
@@ -58,7 +58,8 @@ export class Task {
   @Prop([CommentSchema])
   comments: Comment[];
 
-  @Prop()
+  @Prop({ type: String, default: null })
   associatedProviderId: string | null;
 }
+
 export const TaskSchema = SchemaFactory.createForClass(Task);

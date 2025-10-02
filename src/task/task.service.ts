@@ -112,15 +112,16 @@ export class TaskService {
 
     return task;
   }
-
-  async deleteTaskByName(eventId: string, taskName: string): Promise<Task> {
+  async deleteTaskById(eventId: string, taskId: string): Promise<Task> {
     const event = await this.eventModel.findOne({ eventId });
-    if (!event)
+    if (!event) {
       throw new NotFoundException(`Event with id ${eventId} does not exist`);
+    }
 
-    const taskIndex = event.tasks.findIndex((t) => t.name === taskName);
-    if (taskIndex === -1)
-      throw new NotFoundException(`Task con nombre "${taskName}" not found`);
+    const taskIndex = event.tasks.findIndex((t) => t.id === taskId);
+    if (taskIndex === -1) {
+      throw new NotFoundException(`Task with id "${taskId}" not found`);
+    }
 
     const [removedTask] = event.tasks.splice(taskIndex, 1);
     await event.save();
