@@ -1,10 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsString,
-  IsDateString,
-  IsOptional,
-} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsDateString } from 'class-validator';
 
 export class CreateTaskDto {
   @ApiProperty()
@@ -24,9 +19,4 @@ export class CreateTaskDto {
   @ApiProperty({ type: String, example: '2025-12-15T10:00:00Z' })
   @IsDateString()
   reminderDate: Date;
-
-  @ApiPropertyOptional()
-  @IsString({ message: 'The name must be a text' })
-  @IsOptional()
-  associatedProviderId?: string;
 }
