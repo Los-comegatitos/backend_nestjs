@@ -172,6 +172,23 @@ export class EventService {
   //   return events;
   // }
 
+  async deleteEvent(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    const event = await this.eventModel.findOneAndDelete({
+      eventId: eventId,
+      organizerUserId: organizerIdString,
+    });
+
+    if (!event) {
+      throw new NotFoundException(
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
+      );
+    }
+
+    return event;
+  }
+
   async findEventsByServiceTypes(
     serviceTypeIds: string[],
   ): Promise<FilteredEvent[]> {
