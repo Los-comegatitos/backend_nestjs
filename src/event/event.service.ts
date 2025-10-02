@@ -48,7 +48,7 @@ export class EventService {
       .findOne()
       .sort({ eventId: -1 })
       .exec();
-    const nextEventId = lastEvent ? lastEvent.eventId + 1 : 1;
+    const nextEventId = lastEvent ? parseInt(lastEvent.eventId) + 1 : 1;
 
     const createdEvent = new this.eventModel({
       ...createEventDto,
@@ -126,6 +126,23 @@ export class EventService {
       { status: 'canceled' },
       { new: true },
     );
+
+    if (!event) {
+      throw new NotFoundException(
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
+      );
+    }
+
+    return event;
+  }
+
+  async deleteEvent(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    const event = await this.eventModel.findOneAndDelete({
+      eventId: eventId,
+      organizerUserId: organizerIdString,
+    });
 
     if (!event) {
       throw new NotFoundException(

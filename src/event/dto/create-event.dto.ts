@@ -42,8 +42,9 @@ export class CreateEventDto {
 
   @ApiProperty({ type: ClientDto })
   @ValidateNested()
+  @IsOptional()
   @Type(() => ClientDto)
-  client: ClientDto;
+  client?: ClientDto;
 
   @ApiProperty()
   @IsNumber()

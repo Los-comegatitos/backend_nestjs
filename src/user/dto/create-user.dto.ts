@@ -25,15 +25,6 @@ export class CreateUserDto {
   email: string;
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'Telephone cannot be empty' })
-  @IsString()
-  telephone: string;
-
-  @ApiProperty()
-  @IsNotEmpty({ message: 'Date of birth cannot be empty' })
-  birthDate: Date;
-
-  @ApiProperty()
   @IsNotEmpty({ message: 'Password cannot be empty' })
   @MinLength(8, { message: 'Password must be at least 8 characters' })
   password: string;

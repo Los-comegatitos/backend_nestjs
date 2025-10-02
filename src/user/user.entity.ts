@@ -21,10 +21,10 @@ export class User {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   telephone: string;
 
-  @Column()
+  @Column({ nullable: true })
   birthDate: Date;
 
   @Column()

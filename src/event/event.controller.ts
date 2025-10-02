@@ -122,6 +122,21 @@ export class EventController {
     return event;
   }
 
+  @ApiBearerAuth()
+  @Patch(':eventId/delete')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Eliminar un evento' })
+  @ApiParam({ name: 'eventId', type: Number, description: 'ID del evento' })
+  async delete(@Param('eventId') id: string, @Req() datos: Request) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    const event = await this.eventService.deleteEvent(Number(id), userId);
+    return event;
+  }
+
   @Roles(Role.Organizer)
   @Get(':eventId')
   @ApiOperation({
