@@ -136,36 +136,80 @@ export class EventService {
     return event;
   }
 
+  // async findEventsByServiceTypes(
+  //   serviceTypeIds: string[],
+  // ): Promise<FilteredEvent[]> {
+  //   console.log('serviceTypeIds', serviceTypeIds);
+
+  //   const events: FilteredEvent[] = (await this.eventModel
+  //     .aggregate([
+  //       {
+  //         $project: {
+  //           name: 1,
+  //           description: 1,
+  //           eventDate: 1,
+  //           services: {
+  //             $filter: {
+  //               input: '$services',
+  //               as: 'service',
+  //               cond: {
+  //                 $in: ['$$service.serviceTypeId', serviceTypeIds],
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //       {
+  //         $match: {
+  //           'services.0': { $exists: true },
+  //         },
+  //       },
+  //     ])
+  //     .exec()) as FilteredEvent[];
+
+  //   console.log('events', JSON.stringify(events, null, 2));
+
+  //   return events;
+  // }
+
   async findEventsByServiceTypes(
     serviceTypeIds: string[],
   ): Promise<FilteredEvent[]> {
     console.log('serviceTypeIds', serviceTypeIds);
     const events: FilteredEvent[] = (await this.eventModel
       .aggregate([
-        // match para eventos cuyos services.serviceTypeId hagan mach con alguno de los serviceTypeIds
+        {
+          $addFields: {
+            services: {
+              $filter: {
+                input: '$services',
+                as: 'service',
+                cond: {
+                  $and: [
+                    { $in: ['$$service.serviceTypeId', serviceTypeIds] },
+                    { $gte: ['$$service.dueDate', new Date()] },
+                    { $eq: ['$$service.quote', null] },
+                  ],
+                },
+              },
+            },
+          },
+        },
         {
           $match: {
-            'services.serviceTypeId': { $in: serviceTypeIds },
+            $expr: { $gt: [{ $size: '$services' }, 0] },
           },
-        }, // devolver solo estos campos deseados
+        },
         {
           $project: {
             name: 1,
             description: 1,
             eventDate: 1,
-            // Filtrar para solo mostrar services con el mismo serviceTypeId
-            services: {
-              $filter: {
-                input: '$services',
-                as: 'service',
-                cond: { $in: ['$$service.serviceTypeId', serviceTypeIds] },
-              },
-            },
+            services: 1,
           },
         },
       ])
       .exec()) as FilteredEvent[];
-    // as FilteredEvent porque es lo que describí en el project
 
     console.log('events', events);
 
