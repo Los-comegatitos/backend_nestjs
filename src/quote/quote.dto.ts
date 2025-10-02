@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-  IsDecimal,
   IsInt,
   IsNotEmpty,
   IsNotEmptyObject,
+  IsNumber,
   IsObject,
   IsString,
   ValidateNested,
@@ -31,7 +31,7 @@ export class QuoteDto {
   quantity: number;
 
   @ApiProperty()
-  @IsDecimal()
+  @IsNumber()
   price: number;
 
   @ApiProperty()
