@@ -122,6 +122,21 @@ export class EventController {
     return event;
   }
 
+  @ApiBearerAuth()
+  @Patch(':eventId/delete')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Eliminar un evento' })
+  @ApiParam({ name: 'eventId', type: Number, description: 'ID del evento' })
+  async delete(@Param('eventId') id: string, @Req() datos: Request) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    const event = await this.eventService.deleteEvent(Number(id), userId);
+    return event;
+  }
+
   @Roles(Role.Organizer)
   @Get(':eventId')
   @ApiOperation({
@@ -176,4 +191,51 @@ export class EventController {
   async getProviders(@Param('id') id: string) {
     return await this.eventService.getProviders(id);
   }*/
+
+  @ApiBearerAuth()
+  @Patch(':eventId/tasks/:taskId/assign-provider/:providerId')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Asignar proveedor a una tarea' })
+  @ApiParam({ name: 'eventId', type: String })
+  @ApiParam({ name: 'taskId', type: String })
+  @ApiParam({ name: 'providerId', type: String })
+  @ApiResponse({ status: 200, description: 'Proveedor asignado', type: Event })
+  async assignProvider(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Param('providerId') providerId: string,
+  ) {
+    const event = await this.eventService.assignProviderToTask(
+      eventId,
+      taskId,
+      providerId,
+    );
+    return { message: '000', description: 'Proveedor asignado', data: event };
+  }
+
+  @ApiBearerAuth()
+  @Patch(':eventId/tasks/:taskId/unassign-provider')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Desasignar proveedor de una tarea' })
+  @ApiParam({ name: 'eventId', type: String })
+  @ApiParam({ name: 'taskId', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Proveedor desasignado',
+    type: Event,
+  })
+  async unassignProvider(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+  ) {
+    const event = await this.eventService.unassignProviderFromTask(
+      eventId,
+      taskId,
+    );
+    return {
+      message: '000',
+      description: 'Proveedor desasignado',
+      data: event,
+    };
+  }
 }

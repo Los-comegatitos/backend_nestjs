@@ -84,12 +84,7 @@ export class UserController {
   @Get('profile')
   async getProfile(@Request() req: RequestUser) {
     const email = req.user.email;
-    const user = await this.userService.findByEmail(email);
-    if (!user)
-      throw new NotFoundException(
-        `Los datos de tu usuario no fueron encontrados`,
-      );
-    return user;
+    return await this.userService.findByEmail(email);
   }
 
   @ApiBearerAuth()
