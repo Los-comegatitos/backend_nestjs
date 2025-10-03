@@ -15,7 +15,9 @@ import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('event-type')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class EventTypeController {

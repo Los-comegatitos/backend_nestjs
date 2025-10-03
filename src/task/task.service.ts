@@ -3,22 +3,21 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Event, EventDocument } from 'src/event/event.document';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './task.document';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { EventService } from 'src/event/event.service';
 
 @Injectable()
 export class TaskService {
   constructor(
-    @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+    // @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+    private readonly eventService: EventService,
   ) {}
 
   async createTask(eventId: string, dto: CreateTaskDto): Promise<Task> {
-    const event = await this.eventModel.findOne({ eventId });
+    const event = await this.eventService.findById(eventId);
     if (!event) {
       throw new NotFoundException(`Event con id ${eventId} no existe`);
     }
@@ -46,7 +45,7 @@ export class TaskService {
   }
 
   async getTasks(eventId: string): Promise<Task[]> {
-    const event = await this.eventModel.findOne({ eventId });
+    const event = await this.eventService.findById(eventId);
     if (!event) {
       throw new NotFoundException(`Event con id ${eventId} no existe`);
     }
@@ -58,7 +57,7 @@ export class TaskService {
     taskId: string,
     updateTaskDto: UpdateTaskDto,
   ): Promise<Task> {
-    const event = await this.eventModel.findOne({ eventId });
+    const event = await this.eventService.findById(eventId);
     if (!event) {
       throw new NotFoundException(`Event con id ${eventId} no existe`);
     }
@@ -75,7 +74,7 @@ export class TaskService {
   }
 
   async finalizeTask(eventId: string, taskId: string): Promise<Task> {
-    const event = await this.eventModel.findOne({ eventId });
+    const event = await this.eventService.findById(eventId);
     if (!event) {
       throw new NotFoundException(`Event with id ${eventId} does not exist`);
     }
@@ -101,7 +100,7 @@ export class TaskService {
     taskName: string,
     updateTaskDto: UpdateTaskDto,
   ): Promise<Task> {
-    const event = await this.eventModel.findOne({ eventId });
+    const event = await this.eventService.findById(eventId);
     if (!event)
       throw new NotFoundException(`Event with id  ${eventId} does not exist`);
 
@@ -115,7 +114,7 @@ export class TaskService {
   }
 
   async deleteTaskById(eventId: string, taskId: string): Promise<Task> {
-    const event = await this.eventModel.findOne({ eventId });
+    const event = await this.eventService.findById(eventId);
     if (!event) {
       throw new NotFoundException(`Event with id ${eventId} does not exist`);
     }

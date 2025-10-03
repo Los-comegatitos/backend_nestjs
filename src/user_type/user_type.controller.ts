@@ -14,7 +14,9 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { CreateUserTypeDto } from './dto/create-user_type.dto';
 import { UpdateUserTypeDto } from './dto/update-user_type.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('user-types')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UserTypeController {

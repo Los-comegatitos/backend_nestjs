@@ -6,7 +6,6 @@ import {
   Body,
   ParseIntPipe,
   UseGuards,
-  NotFoundException,
   ConflictException,
   Request,
 } from '@nestjs/common';
@@ -80,7 +79,6 @@ export class UserController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(Role.Admin, Role.Provider, Role.Organizer)
   @Get('profile')
   async getProfile(@Request() req: RequestUser) {
     const email = req.user.email;
@@ -92,9 +90,6 @@ export class UserController {
   @Roles(Role.Admin)
   @Get(':id')
   async findById(@Param('id', ParseIntPipe) id: number) {
-    const user = await this.userService.findById(id);
-    if (!user)
-      throw new NotFoundException(`El usuario con ID ${id} no fue encontrado`);
-    return user;
+    return await this.userService.findById(id);
   }
 }

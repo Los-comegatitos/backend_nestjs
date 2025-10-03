@@ -15,7 +15,9 @@ import { Role } from 'src/auth/roles.enum';
 import { QuoteService } from './quote.service';
 import { QuoteDto } from './quote.dto';
 import { Request as ExpressRequest } from 'express';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('quote')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class QuoteController {

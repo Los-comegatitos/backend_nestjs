@@ -90,7 +90,8 @@ export class UserService {
       where: { id },
       relations: ['typeuser'],
     });
-    if (!user) throw new NotFoundException('El usuario no fue encontrado');
+    if (!user)
+      throw new NotFoundException(`El usuario con ID ${id} no fue encontrado`);
 
     const { password: _password, ...rest } = user;
     return rest;
