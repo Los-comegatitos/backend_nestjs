@@ -22,6 +22,7 @@ export class TaskService {
     if (!event) {
       throw new NotFoundException(`Event con id ${eventId} no existe`);
     }
+
     const taskId = uuidv4();
 
     const newTask: Task = {
@@ -35,7 +36,7 @@ export class TaskService {
       completionDate: null,
       attachments: [],
       comments: [],
-      associatedProviderId: dto.associatedProviderId ?? null,
+      associatedProviderId: null,
     };
 
     event.tasks.push(newTask);
@@ -62,7 +63,7 @@ export class TaskService {
       throw new NotFoundException(`Event con id ${eventId} no existe`);
     }
 
-    const task = event.tasks.id(taskId);
+    const task = event.tasks.find((t) => t.id === taskId);
     if (!task) {
       throw new NotFoundException(`Task con id ${taskId} no encontrada`);
     }
@@ -79,13 +80,13 @@ export class TaskService {
       throw new NotFoundException(`Event with id ${eventId} does not exist`);
     }
 
-    const task = event.tasks.id(taskId);
+    const task = event.tasks.find((t) => t.id === taskId);
     if (!task) {
-      throw new NotFoundException(`Event with id  ${taskId} not found`);
+      throw new NotFoundException(`Task with id ${taskId} not found`);
     }
 
     if (task.status === 'completed') {
-      throw new BadRequestException('The task is now complete');
+      throw new BadRequestException('The task is already completed');
     }
 
     task.status = 'completed';
@@ -112,6 +113,7 @@ export class TaskService {
 
     return task;
   }
+
   async deleteTaskById(eventId: string, taskId: string): Promise<Task> {
     const event = await this.eventModel.findOne({ eventId });
     if (!event) {
