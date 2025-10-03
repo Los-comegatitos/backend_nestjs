@@ -126,6 +126,12 @@ export class TaskService {
     const [removedTask] = event.tasks.splice(taskIndex, 1);
     await event.save();
 
+    if (removedTask.associatedProviderId) {
+      console.log(
+        `Notification: The task"${removedTask.name}" of the event ${eventId} was eliminated. Associated provider: ${removedTask.associatedProviderId}`,
+      );
+    }
+
     return removedTask;
   }
 }
