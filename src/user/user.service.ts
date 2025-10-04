@@ -140,4 +140,10 @@ export class UserService {
       throw new NotFoundException('El tipo de usuario no fue encontrado');
     return typeUser;
   }
+
+  async getProfile(email: string) {
+    const user = await this.findByEmail(email);
+    const { password: _password, ...info } = user;
+    return info;
+  }
 }

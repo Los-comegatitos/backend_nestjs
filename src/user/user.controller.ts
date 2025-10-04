@@ -31,12 +31,6 @@ export class UserController {
 
   @Post()
   async create(@Body() dto: CreateUserDto) {
-    if (!dto || dto.user_Typeid === undefined) {
-      throw new ConflictException(
-        'Falta información del tipo de usuario o general',
-      );
-    }
-
     const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
 
     if (typeUser.name.toLowerCase() === Role.Admin.toLowerCase()) {
@@ -82,7 +76,7 @@ export class UserController {
   @Get('profile')
   async getProfile(@Request() req: RequestUser) {
     const email = req.user.email;
-    return await this.userService.findByEmail(email);
+    return await this.userService.getProfile(email);
   }
 
   @ApiBearerAuth()

@@ -233,26 +233,36 @@ export class QuoteService {
       }>
     > = {};
 
-    quotes.forEach(
-      (quote: Quote & { service?: Service; event?: { name?: string } }) => {
-        const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-        const serviceName = quote.service?.name ?? 'Unknown service';
-        const eventName = quote.event?.name ?? 'Unnamed event';
+    for (const quoteBasic of quotes) {
+      const quote = quoteBasic as Quote & {
+        service?: Service;
+        event?: { name?: string };
+      };
 
-        if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
+      const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
+      const serviceName = quote.service?.name ?? 'Unknown service';
+      const eventName = quote.event?.name ?? 'Unnamed event';
 
-        grouped[serviceTypeId].push({
-          id: quote.id,
-          name: serviceName,
-          price: quote.price,
-          eventId: quote.eventId,
-          eventName,
-          status: quote.status,
-          date: quote.date,
-          quantity: quote.quantity,
-        });
-      },
-    );
+      const serviceInfo = await this.serviceTypeService.findOne(
+        parseInt(serviceTypeId),
+      );
+      console.log(serviceInfo);
+
+      if (!grouped[serviceInfo.name]) grouped[serviceInfo.name] = [];
+
+      grouped[serviceInfo.name].push({
+        id: quote.id,
+        name: serviceName,
+        price: quote.price,
+        eventId: quote.eventId,
+        eventName,
+        status: quote.status,
+        date: quote.date,
+        quantity: quote.quantity,
+      });
+
+      console.log(grouped);
+    }
 
     return grouped;
   }
