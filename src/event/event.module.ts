@@ -10,7 +10,6 @@ import { CatalogModule } from 'src/catalog/catalog.module';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Event.name, schema: EventSchema }]),
-
     TypeOrmModule.forFeature([EventType]),
     CatalogModule,
   ],

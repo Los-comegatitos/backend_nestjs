@@ -28,6 +28,8 @@ import { Role } from 'src/auth/roles.enum';
 import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { AddServiceDto } from './dto/event-service.dto';
+
+@ApiBearerAuth()
 @ApiTags('Events')
 @Controller('events')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -49,7 +51,6 @@ export class EventController {
     return await this.eventService.findEventsForProvider(userId);
   }
 
-  @ApiBearerAuth()
   @Post()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Crear un nuevo evento' })
@@ -64,7 +65,6 @@ export class EventController {
     return event;
   }
 
-  @ApiBearerAuth()
   @Get()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Listar todos los eventos de un organizador' })
@@ -77,7 +77,6 @@ export class EventController {
     return await this.eventService.findAllOrganizer(userId);
   }
 
-  @ApiBearerAuth()
   @Put(':eventId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Modificar un evento' })
@@ -92,7 +91,6 @@ export class EventController {
     return { message: '000', description: 'Evento actualizado', data: event };
   }
 
-  @ApiBearerAuth()
   @Patch(':eventId/finalize')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Finalizar un evento' })
@@ -107,7 +105,6 @@ export class EventController {
     return event;
   }
 
-  @ApiBearerAuth()
   @Patch(':eventId/cancel')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Cancelar un evento' })
@@ -122,7 +119,6 @@ export class EventController {
     return event;
   }
 
-  @ApiBearerAuth()
   @Patch(':eventId/delete')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Eliminar un evento' })
@@ -192,7 +188,6 @@ export class EventController {
     return await this.eventService.getProviders(id);
   }*/
 
-  @ApiBearerAuth()
   @Patch(':eventId/tasks/:taskId/assign-provider/:providerId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Asignar proveedor a una tarea' })
@@ -213,7 +208,6 @@ export class EventController {
     return { message: '000', description: 'Proveedor asignado', data: event };
   }
 
-  @ApiBearerAuth()
   @Patch(':eventId/tasks/:taskId/unassign-provider')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Desasignar proveedor de una tarea' })

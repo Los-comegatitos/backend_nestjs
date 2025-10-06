@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -28,6 +29,11 @@ export class UserService {
   async create(dto: CreateUserDto, requesterRole?: string) {
     if (!dto)
       throw new ConflictException('No se ha ingresado ninguna información');
+
+    if (dto.password.length < 8)
+      throw new BadRequestException(
+        'La contraseña debe tener al menos 8 caracteres',
+      );
 
     // const birthDate = new Date(dto.birthDate);
     // if (isNaN(birthDate.getTime()))
@@ -92,7 +98,8 @@ export class UserService {
       where: { id },
       relations: ['typeuser'],
     });
-    if (!user) throw new NotFoundException('El usuario no fue encontrado');
+    if (!user)
+      throw new NotFoundException(`El usuario con ID ${id} no fue encontrado`);
 
     const { password: _password, ...rest } = user;
     return rest;
@@ -112,7 +119,7 @@ export class UserService {
     if (!user) throw new NotFoundException('El usuario no fue encontrado');
 
     const updates: Partial<User> = { ...dto };
-    if (dto.password) updates.password = await bcrypt.hash(dto.password, 10);
+    // if (dto.password) updates.password = await bcrypt.hash(dto.password, 10);
 
     await this.userRepo.update(id, updates);
 
@@ -174,5 +181,11 @@ export class UserService {
     if (!typeUser)
       throw new NotFoundException('El tipo de usuario no fue encontrado');
     return typeUser;
+  }
+
+  async getProfile(email: string) {
+    const user = await this.findByEmail(email);
+    const { password: _password, ...info } = user;
+    return info;
   }
 }

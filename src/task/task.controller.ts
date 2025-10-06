@@ -24,13 +24,13 @@ import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
+@ApiBearerAuth()
 @ApiTags('Tasks')
 @Controller('events/:eventId/tasks')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
-  @ApiBearerAuth()
   @Post()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Create task in an event' })
@@ -45,7 +45,6 @@ export class TaskController {
     };
   }
 
-  @ApiBearerAuth()
   @Get()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'List tasks for an event' })
@@ -59,7 +58,6 @@ export class TaskController {
     };
   }
 
-  @ApiBearerAuth()
   @Patch(':taskId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Update an event task' })
@@ -74,7 +72,6 @@ export class TaskController {
     return { message: '000', description: 'Task completed', data: task };
   }
 
-  @ApiBearerAuth()
   @Patch(':taskId/finalize')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'End task of an event' })
@@ -87,7 +84,6 @@ export class TaskController {
     return { message: '000', description: 'Task completed', data: task };
   }
 
-  @ApiBearerAuth()
   @Patch('by-name/:taskName')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Update task by name' })
@@ -104,7 +100,6 @@ export class TaskController {
     return { message: '000', description: 'Task updated by name', data: task };
   }
 
-  @ApiBearerAuth()
   @Delete(':taskId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Delete task by id' })
