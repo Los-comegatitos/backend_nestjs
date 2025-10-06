@@ -1,11 +1,5 @@
 import { CreateUserDto } from './create-user.dto';
-import {
-  IsEmail,
-  IsNumber,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -34,13 +28,13 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   telephone?: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @MinLength(8, { message: 'Password must be at least 8 characters' })
-  password?: string;
+  // @ApiPropertyOptional()
+  // @IsOptional()
+  // @MinLength(8, { message: 'Password must be at least 8 characters' })
+  // password?: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  user_Typeid?: number;
+  // @ApiPropertyOptional()
+  // @IsOptional()
+  // @IsNumber()
+  // user_Typeid?: number;
 }

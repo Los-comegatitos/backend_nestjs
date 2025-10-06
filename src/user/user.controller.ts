@@ -8,6 +8,7 @@ import {
   UseGuards,
   ConflictException,
   Request,
+  Put,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -16,6 +17,7 @@ import { Role } from 'src/auth/roles.enum';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 interface RequestUser {
   user: {
@@ -77,6 +79,16 @@ export class UserController {
   async getProfile(@Request() req: RequestUser) {
     const email = req.user.email;
     return await this.userService.getProfile(email);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Put('profile/:id')
+  async updateUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+  ) {
+    return await this.userService.update(id, dto);
   }
 
   @ApiBearerAuth()

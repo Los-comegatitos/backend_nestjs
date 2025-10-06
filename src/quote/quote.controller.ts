@@ -60,4 +60,16 @@ export class QuoteController {
     const user = req.user as { userId: number; role: Role; email: string };
     return this.quoteService.sendQuotes(createQuote, user.userId);
   }
+
+  @Post(':quoteId/accept')
+  @Roles(Role.Organizer)
+  async acceptQuote(@Param('quoteId') quoteId: string) {
+    return this.quoteService.acceptQuote(Number(quoteId));
+  }
+
+  @Post(':quoteId/reject')
+  @Roles(Role.Organizer)
+  async rejectQuote(@Param('quoteId') quoteId: string) {
+    return this.quoteService.rejectQuote(Number(quoteId));
+  }
 }

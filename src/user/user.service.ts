@@ -111,7 +111,7 @@ export class UserService {
     if (!user) throw new NotFoundException('El usuario no fue encontrado');
 
     const updates: Partial<User> = { ...dto };
-    if (dto.password) updates.password = await bcrypt.hash(dto.password, 10);
+    // if (dto.password) updates.password = await bcrypt.hash(dto.password, 10);
 
     await this.userRepo.update(id, updates);
 
