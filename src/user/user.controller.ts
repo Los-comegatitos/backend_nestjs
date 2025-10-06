@@ -16,6 +16,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -46,15 +47,20 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
-  @Post('admin')
-  async createAdmin(@Body() dto: CreateUserDto, @Request() req: RequestUser) {
-    const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
+  @Post('create-admin')
+  async createAdmin(@Body() dto: CreateUserDto, @Request() datos: RequestUser) {
+    const { role } = datos.user;
+    return await this.userService.create(dto, role);
+  }
 
-    if (typeUser.name.toLowerCase() !== Role.Admin.toLowerCase()) {
-      throw new ConflictException('Solo se puede crear un tipo Admin aquí');
-    }
-
-    return await this.userService.create(dto, req.user.role);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Post('update-password/:id')
+  async updatePassword(
+    @Param('id') id: number,
+    @Body() dto: UpdateUserPasswordDto,
+  ) {
+    return await this.userService.updatePassword(id, dto);
   }
 
   @ApiBearerAuth()
