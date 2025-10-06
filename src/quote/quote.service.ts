@@ -46,17 +46,31 @@ export class QuoteService {
     > = {};
 
     quotes.forEach(
-      (quote: Quote & { service?: Service; event?: { name?: string } }) => {
-        const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-        const serviceName = quote.service?.name ?? 'Unknown service';
-        const eventName = quote.event?.name ?? 'Unnamed event';
+      (
+        quote: Quote & {
+          service?: Service | Service[];
+          event?:
+            | { name?: string; organizerId?: number }
+            | { name?: string; organizerId?: number }[];
+        },
+      ) => {
+        const serviceData = Array.isArray(quote.service)
+          ? quote.service[0]
+          : quote.service;
+        const eventData = Array.isArray(quote.event)
+          ? quote.event[0]
+          : quote.event;
+
+        const serviceTypeId = serviceData?.serviceTypeId ?? 'unknown';
+        const serviceName = serviceData?.name ?? 'Unknown service';
+        const eventName = eventData?.name ?? 'Unnamed event';
 
         if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
 
         grouped[serviceTypeId].push({
           id: quote.id,
           name: serviceName,
-          description: quote.service?.description,
+          description: serviceData?.description,
           price: quote.price,
           eventId: quote.eventId,
           eventName,
@@ -97,15 +111,24 @@ export class QuoteService {
     quotes.forEach(
       (
         quote: Quote & {
-          service?: Service;
-          event?: { name?: string; organizerId?: number };
+          service?: Service | Service[];
+          event?:
+            | { name?: string; organizerId?: number }
+            | { name?: string; organizerId?: number }[];
         },
       ) => {
-        if (quote.event?.organizerId !== organizerId) return;
+        const eventData = Array.isArray(quote.event)
+          ? quote.event[0]
+          : quote.event;
+        if (eventData?.organizerId !== organizerId) return;
 
-        const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-        const serviceName = quote.service?.name ?? 'Unknown service';
-        const eventName = quote.event?.name ?? 'Unnamed event';
+        const serviceData = Array.isArray(quote.service)
+          ? quote.service[0]
+          : quote.service;
+
+        const serviceTypeId = serviceData?.serviceTypeId ?? 'unknown';
+        const serviceName = serviceData?.name ?? 'Unknown service';
+        const eventName = eventData?.name ?? 'Unnamed event';
 
         if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
 
@@ -191,10 +214,24 @@ export class QuoteService {
     > = {};
 
     quotes.forEach(
-      (quote: Quote & { service?: Service; event?: { name?: string } }) => {
-        const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-        const serviceName = quote.service?.name ?? 'Unknown service';
-        const eventName = quote.event?.name ?? 'Unnamed event';
+      (
+        quote: Quote & {
+          service?: Service | Service[];
+          event?:
+            | { name?: string; organizerId?: number }
+            | { name?: string; organizerId?: number }[];
+        },
+      ) => {
+        const serviceData = Array.isArray(quote.service)
+          ? quote.service[0]
+          : quote.service;
+        const eventData = Array.isArray(quote.event)
+          ? quote.event[0]
+          : quote.event;
+
+        const serviceTypeId = serviceData?.serviceTypeId ?? 'unknown';
+        const serviceName = serviceData?.name ?? 'Unknown service';
+        const eventName = eventData?.name ?? 'Unnamed event';
 
         if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
 
