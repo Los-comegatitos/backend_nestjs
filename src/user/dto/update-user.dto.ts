@@ -21,7 +21,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsEmail({}, { message: 'The email is not valid' })
+  @IsEmail({}, { message: 'El email no es válido' })
   email?: string;
 
   @ApiPropertyOptional()

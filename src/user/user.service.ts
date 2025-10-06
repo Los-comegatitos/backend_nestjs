@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -26,6 +27,11 @@ export class UserService {
   async create(dto: CreateUserDto, requesterRole?: Role) {
     if (!dto)
       throw new ConflictException('No se ha ingresado ninguna información');
+
+    if (dto.password.length < 8)
+      throw new BadRequestException(
+        'La contraseña debe tener al menos 8 caracteres',
+      );
 
     // const birthDate = new Date(dto.birthDate);
     // if (isNaN(birthDate.getTime()))
