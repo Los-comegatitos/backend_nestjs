@@ -43,9 +43,9 @@ export class Quote {
   toServiceId: string;
   @Prop()
   providerId: number;
-  @Prop([ServiceSchema])
+  @Prop({ type: ServiceSchema })
   service: Service;
-  @Prop([EventSchema])
+  @Prop({ type: EventSchema })
   event: Event;
   @Prop()
   status: string; // considerar luego enums?

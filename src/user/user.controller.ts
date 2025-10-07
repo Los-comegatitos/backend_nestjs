@@ -6,9 +6,9 @@ import {
   Body,
   ParseIntPipe,
   UseGuards,
-  NotFoundException,
   ConflictException,
-  Req,
+  Request,
+  Put,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -18,7 +18,15 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { Request } from 'express';
+import { UpdateUserDto } from './dto/update-user.dto';
+
+interface RequestUser {
+  user: {
+    id: number;
+    email: string;
+    role: Role;
+  };
+}
 
 @Controller('user')
 export class UserController {
@@ -40,12 +48,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Post('create-admin')
-  async createAdmin(@Body() dto: CreateUserDto, @Req() datos: Request) {
-    const { role } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+  async createAdmin(@Body() dto: CreateUserDto, @Request() datos: RequestUser) {
+    const { role } = datos.user;
     return await this.userService.create(dto, role);
   }
 
@@ -77,12 +81,27 @@ export class UserController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('profile')
+  async getProfile(@Request() req: RequestUser) {
+    const email = req.user.email;
+    return await this.userService.getProfile(email);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Put('profile/:id')
+  async updateUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+  ) {
+    return await this.userService.update(id, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get(':id')
   async findById(@Param('id', ParseIntPipe) id: number) {
-    const user = await this.userService.findById(id);
-    if (!user)
-      throw new NotFoundException(`El usuario con ID ${id} no fue encontrado`);
-    return user;
+    return await this.userService.findById(id);
   }
 }

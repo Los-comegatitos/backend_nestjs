@@ -206,12 +206,10 @@ export class QuoteService {
   }
 
   async acceptQuote(id: number) {
-    const quote = await this.quoteModel.findOne({ id });
+    const quote = await this.quoteModel.findOne({ id: id });
     if (!quote) throw new NotFoundException('La cotización no fue encontrada');
-
     quote.status = 'accepted';
     await quote.save();
-
     const newInfo = {
       serviceTypeId: quote.service?.serviceTypeId,
       price: quote.price,
@@ -229,9 +227,8 @@ export class QuoteService {
   }
 
   async rejectQuote(id: number) {
-    const quote = await this.quoteModel.findOne({ id });
+    const quote = await this.quoteModel.findOne({ id: id });
     if (!quote) throw new NotFoundException('La cotización no fue encontrada');
-
     quote.status = 'rejected';
     return await quote.save();
   }
