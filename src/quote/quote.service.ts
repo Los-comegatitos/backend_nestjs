@@ -213,4 +213,33 @@ export class QuoteService {
 
     return grouped;
   }
+  //listar proveedores con cotizaciones aprobadas
+  async getAcceptedProvidersByEvent(eventId: number) {
+    const quotes = await this.quoteModel
+      .find({ eventId, status: 'accepted' })
+      .lean();
+
+    //Por si no no hay proveedores con co cotizaciones aprobadas
+    if (!quotes.length) {
+      return [];
+    }
+
+    const providersMap = new Map<number, string>();
+
+    quotes.forEach((quote: Quote & { service?: Service }) => {
+      if (quote.providerId && quote.service) {
+        providersMap.set(quote.providerId, `Proveedor #${quote.providerId}`);
+      }
+    });
+
+    // Convetir el mapa a lista de objetos
+    const providersList = Array.from(providersMap.entries()).map(
+      ([providerId, providerName]) => ({
+        providerId,
+        providerName,
+      }),
+    );
+
+    return providersList;
+  }
 }

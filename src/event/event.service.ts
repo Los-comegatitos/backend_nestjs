@@ -388,61 +388,20 @@ export class EventService {
     return event.save();
   }
 
-  async assignProviderToTask(
-    eventId: string,
-    taskId: string,
-    providerId: string,
-  ): Promise<EventDocument> {
-    const event = await this.eventModel.findOne({ eventId });
+  //listar los proveedores de un evento
+  async findProvidersByEvent(eventId: string) {
+    const event = await this.eventModel.findOne({ eventId }).exec();
 
     if (!event) {
-      throw new NotFoundException('El evento no existe.');
+      throw new NotFoundException(`El evento con id ${eventId} no existe`);
     }
 
-    const task = event.tasks.find((t) => t.id === taskId);
-    if (!task) {
-      throw new NotFoundException('La tarea no existe en este evento.');
-    }
+    // Filtrarlos proveedores que tengan cotizaciones aprobadas
+    const providerIds =
+      event.services
+        ?.filter((s) => s.quote && s.quote.providerId)
+        .map((s) => s.quote!.providerId) ?? [];
 
-    if (task.associatedProviderId) {
-      throw new BadRequestException('La tarea ya tiene un proveedor asignado.');
-    }
-
-    const providerIsValid = event.services.some(
-      (s) => s.quote?.providerId === providerId,
-    );
-    if (!providerIsValid) {
-      throw new BadRequestException(
-        'El proveedor no está ofreciendo servicios en este evento.',
-      );
-    }
-
-    task.associatedProviderId = providerId;
-    return event.save();
-  }
-
-  async unassignProviderFromTask(
-    eventId: string,
-    taskId: string,
-  ): Promise<EventDocument> {
-    const event = await this.eventModel.findOne({ eventId });
-
-    if (!event) {
-      throw new NotFoundException('El evento no existe.');
-    }
-
-    const task = event.tasks.find((t) => t.id === taskId);
-    if (!task) {
-      throw new NotFoundException('La tarea no existe en este evento.');
-    }
-
-    if (!task.associatedProviderId) {
-      throw new BadRequestException(
-        'La tarea no tiene ningún proveedor asignado.',
-      );
-    }
-
-    task.associatedProviderId = null;
-    return event.save();
+    return providerIds;
   }
 }

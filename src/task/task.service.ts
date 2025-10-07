@@ -136,4 +136,62 @@ export class TaskService {
 
     return removedTask;
   }
+
+  async assignProviderToTask(
+    eventId: string,
+    taskId: string,
+    providerId: string,
+  ): Promise<EventDocument> {
+    const event = await this.eventModel.findOne({ eventId });
+
+    if (!event) {
+      throw new NotFoundException('El evento no existe.');
+    }
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) {
+      throw new NotFoundException('La tarea no existe en este evento.');
+    }
+
+    if (task.associatedProviderId) {
+      throw new BadRequestException('La tarea ya tiene un proveedor asignado.');
+    }
+
+    const providerIsValid = event.services.some(
+      (s) => s.quote?.providerId === providerId,
+    );
+    if (!providerIsValid) {
+      throw new BadRequestException(
+        'El proveedor no está ofreciendo servicios en este evento.',
+      );
+    }
+
+    task.associatedProviderId = providerId;
+    return event.save();
+  }
+
+  async unassignProviderFromTask(
+    eventId: string,
+    taskId: string,
+  ): Promise<EventDocument> {
+    const event = await this.eventModel.findOne({ eventId });
+
+    if (!event) {
+      throw new NotFoundException('El evento no existe.');
+    }
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) {
+      throw new NotFoundException('La tarea no existe en este evento.');
+    }
+
+    if (!task.associatedProviderId) {
+      throw new BadRequestException(
+        'La tarea no tiene ningún proveedor asignado.',
+      );
+    }
+
+    task.associatedProviderId = null;
+    return event.save();
+  }
 }

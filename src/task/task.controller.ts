@@ -17,18 +17,23 @@ import {
   ApiBody,
   ApiResponse,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { EventService } from 'src/event/event.service';
 
 @ApiTags('Tasks')
 @Controller('events/:eventId/tasks')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class TaskController {
-  constructor(private readonly taskService: TaskService) {}
+  constructor(
+    private readonly taskService: TaskService,
+    private readonly eventService: EventService,
+  ) {}
 
   @ApiBearerAuth()
   @Post()
@@ -39,7 +44,7 @@ export class TaskController {
   async create(@Param('eventId') eventId: string, @Body() dto: CreateTaskDto) {
     const task = await this.taskService.createTask(eventId, dto);
     return {
-      message: '000',
+      message: '201',
       description: 'Tasks successfully completed',
       data: task,
     };
@@ -53,7 +58,7 @@ export class TaskController {
   async findAll(@Param('eventId') eventId: string) {
     const tasks = await this.taskService.getTasks(eventId);
     return {
-      message: '000',
+      message: '201',
       description: 'Tasks successfully completed',
       data: tasks,
     };
@@ -71,7 +76,7 @@ export class TaskController {
     @Body() dto: UpdateTaskDto,
   ) {
     const task = await this.taskService.updateTask(eventId, taskId, dto);
-    return { message: '000', description: 'Task completed', data: task };
+    return { message: '201', description: 'Task completed', data: task };
   }
 
   @ApiBearerAuth()
@@ -84,7 +89,7 @@ export class TaskController {
     @Param('taskId') taskId: string,
   ) {
     const task = await this.taskService.finalizeTask(eventId, taskId);
-    return { message: '000', description: 'Task completed', data: task };
+    return { message: '201', description: 'Task completed', data: task };
   }
 
   @ApiBearerAuth()
@@ -101,7 +106,7 @@ export class TaskController {
       taskName,
       dto,
     );
-    return { message: '000', description: 'Task updated by name', data: task };
+    return { message: '201', description: 'Task updated by name', data: task };
   }
 
   @ApiBearerAuth()
@@ -115,9 +120,56 @@ export class TaskController {
   ) {
     const task = await this.taskService.deleteTaskById(eventId, taskId);
     return {
-      message: '000',
+      message: '201',
       description: 'Task deleted successfully',
       data: task,
+    };
+  }
+
+  @ApiBearerAuth()
+  @Patch(':eventId/tasks/:taskId/assign-provider/:providerId')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Asignar proveedor a una tarea' })
+  @ApiParam({ name: 'eventId', type: String })
+  @ApiParam({ name: 'taskId', type: String })
+  @ApiParam({ name: 'providerId', type: String })
+  @ApiResponse({ status: 200, description: 'Proveedor asignado', type: Event })
+  async assignProvider(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Param('providerId') providerId: string,
+  ) {
+    const event = await this.taskService.assignProviderToTask(
+      eventId,
+      taskId,
+      providerId,
+    );
+    return { message: '201', description: 'Proveedor asignado', data: event };
+  }
+
+  @ApiBearerAuth()
+  @Patch(':eventId/tasks/:taskId/unassign-provider')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Desasignar proveedor de una tarea' })
+  @ApiParam({ name: 'eventId', type: String })
+  @ApiParam({ name: 'taskId', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Proveedor desasignado',
+    type: Event,
+  })
+  async unassignProvider(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+  ) {
+    const event = await this.taskService.unassignProviderFromTask(
+      eventId,
+      taskId,
+    );
+    return {
+      message: '201',
+      description: 'Proveedor desasignado',
+      data: event,
     };
   }
 }
