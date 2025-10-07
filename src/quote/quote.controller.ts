@@ -15,11 +15,10 @@ import { Role } from 'src/auth/roles.enum';
 import { QuoteService } from './quote.service';
 import { QuoteDto } from './quote.dto';
 import { Request as ExpressRequest } from 'express';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
-@Controller('quote')
-@ApiTags('Quote')
 @ApiBearerAuth()
+@Controller('quote')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class QuoteController {
   constructor(private readonly quoteService: QuoteService) {}
@@ -45,9 +44,6 @@ export class QuoteController {
 
   @Get('sent/:providerId')
   @Roles(Role.Provider)
-  @ApiOperation({
-    summary: 'Enviar cotización',
-  })
   async getSentQuotes(
     @Param('providerId') providerId: string,
     @Query('status') status?: string,
@@ -60,29 +56,20 @@ export class QuoteController {
 
   @Post('send')
   @Roles(Role.Provider)
-  @ApiOperation({
-    summary: 'Enviar cotización',
-  })
   async sendQuotes(@Req() req: ExpressRequest, @Body() createQuote: QuoteDto) {
     const user = req.user as { userId: number; role: Role; email: string };
     return this.quoteService.sendQuotes(createQuote, user.userId);
   }
 
-  @Get('accepted/:eventId')
+  @Post(':quoteId/accept')
   @Roles(Role.Organizer)
-  @ApiOperation({
-    summary: 'Listar proveedores con cotización aceptada para un evento',
-  })
-  async getAcceptedProviders(@Param('eventId') eventId: string) {
-    const providers = await this.quoteService.getAcceptedProvidersByEvent(
-      Number(eventId),
-    );
-    return {
-      message: {
-        code: '000',
-        description: 'Proveedores obtenidos correctamente',
-      },
-      data: providers,
-    };
+  async acceptQuote(@Param('quoteId') quoteId: string) {
+    return this.quoteService.acceptQuote(Number(quoteId));
+  }
+
+  @Post(':quoteId/reject')
+  @Roles(Role.Organizer)
+  async rejectQuote(@Param('quoteId') quoteId: string) {
+    return this.quoteService.rejectQuote(Number(quoteId));
   }
 }

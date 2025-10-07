@@ -44,29 +44,105 @@ export class QuoteService {
         status?: string;
       }>
     > = {};
+    console.log(quotes);
 
-    quotes.forEach(
-      (quote: Quote & { service?: Service; event?: { name?: string } }) => {
-        const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-        const serviceName = quote.service?.name ?? 'Unknown service';
-        const eventName = quote.event?.name ?? 'Unnamed event';
+    // le cambié a forof porque no me daban los await :'v
+    // quotes.forEach(
+    //   (
+    //     quote: Quote & {
+    //       service?: Service | Service[];
+    //       event?:
+    //         | { name?: string; organizerId?: number }
+    //         | { name?: string; organizerId?: number }[];
+    //     },
+    //   ) => {
+    //     const serviceData = Array.isArray(quote.service)
+    //       ? quote.service[0]
+    //       : quote.service;
+    //     const eventData = Array.isArray(quote.event)
+    //       ? quote.event[0]
+    //       : quote.event;
 
-        if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
+    //     const serviceTypeId = serviceData?.serviceTypeId ?? 'unknown';
+    //     const serviceName = serviceData?.name ?? 'Unknown service';
+    //     const eventName = eventData?.name ?? 'Unnamed event';
 
-        grouped[serviceTypeId].push({
-          id: quote.id,
-          name: serviceName,
-          description: quote.service?.description,
-          price: quote.price,
-          eventId: quote.eventId,
-          eventName,
-          date: quote.date,
-          quantity: quote.quantity,
-          providerId: quote.providerId,
-          status: quote.status,
-        });
-      },
-    );
+    for (const quoteBasic of quotes) {
+      const quote = quoteBasic as Quote & {
+        service?: Service;
+        event?: { name?: string };
+      };
+      const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
+      const serviceName = quote.service?.name ?? 'Unknown service';
+      const eventName = quote.event?.name ?? 'Unnamed event';
+
+      console.log('UNICO');
+      console.log(quote);
+      const serviceInfo = await this.serviceTypeService.findOne(
+        parseInt(serviceTypeId),
+      );
+      console.log(serviceInfo);
+
+      if (!grouped[serviceInfo.name]) grouped[serviceInfo.name] = [];
+
+      grouped[serviceInfo.name].push({
+        id: quote.id,
+        name: serviceName,
+        description: quote.service?.description,
+        price: quote.price,
+        eventId: quote.eventId,
+        eventName,
+        date: quote.date,
+        quantity: quote.quantity,
+        providerId: quote.providerId,
+        status: quote.status,
+      });
+    }
+
+    // quotes.forEach(
+    //   async (quote: Quote & { service?: Service; event?: { name?: string } }) => {
+    //     const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
+    //     const serviceName = quote.service?.name ?? 'Unknown service';
+    //     const eventName = quote.event?.name ?? 'Unnamed event';
+    //     console.log('UNICO');
+
+    //     // console.log(quote);
+
+    //     // const serviceInfo = await this.serviceTypeService.findOne(parseInt(serviceTypeId));
+    //     // console.log(serviceInfo);
+
+    //     if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
+
+    //     grouped[serviceTypeId].push({
+    //       id: quote.id,
+    //       name: serviceName,
+    //       description: quote.service?.description,
+    //       price: quote.price,
+    //       eventId: quote.eventId,
+    //       eventName,
+    //       date: quote.date,
+    //       quantity: quote.quantity,
+    //       providerId: quote.providerId,
+    //       status: quote.status,
+    //     });
+    //   },
+    // );
+
+    console.log(grouped);
+    // grouped[serviceTypeId].push({
+    //   id: quote.id,
+    //   name: serviceName,
+    //   description: serviceData?.description,
+    //   price: quote.price,
+    //   eventId: quote.eventId,
+    //   eventName,
+    //   date: quote.date,
+    //   quantity: quote.quantity,
+    //   providerId: quote.providerId,
+    //   status: quote.status,
+    // });
+    // },
+    // );
 
     return grouped;
   }
@@ -97,15 +173,24 @@ export class QuoteService {
     quotes.forEach(
       (
         quote: Quote & {
-          service?: Service;
-          event?: { name?: string; organizerId?: number };
+          service?: Service | Service[];
+          event?:
+            | { name?: string; organizerId?: number }
+            | { name?: string; organizerId?: number }[];
         },
       ) => {
-        if (quote.event?.organizerId !== organizerId) return;
+        const eventData = Array.isArray(quote.event)
+          ? quote.event[0]
+          : quote.event;
+        if (eventData?.organizerId !== organizerId) return;
 
-        const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-        const serviceName = quote.service?.name ?? 'Unknown service';
-        const eventName = quote.event?.name ?? 'Unnamed event';
+        const serviceData = Array.isArray(quote.service)
+          ? quote.service[0]
+          : quote.service;
+
+        const serviceTypeId = serviceData?.serviceTypeId ?? 'unknown';
+        const serviceName = serviceData?.name ?? 'Unknown service';
+        const eventName = eventData?.name ?? 'Unnamed event';
 
         if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
 
@@ -190,56 +275,83 @@ export class QuoteService {
       }>
     > = {};
 
-    quotes.forEach(
-      (quote: Quote & { service?: Service; event?: { name?: string } }) => {
-        const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-        const serviceName = quote.service?.name ?? 'Unknown service';
-        const eventName = quote.event?.name ?? 'Unnamed event';
+    for (const quoteBasic of quotes) {
+      const quote = quoteBasic as Quote & {
+        service?: Service;
+        event?: { name?: string };
+      };
+      // quotes.forEach(
+      //   (
+      //     quote: Quote & {
+      //       service?: Service | Service[];
+      //       event?:
+      //         | { name?: string; organizerId?: number }
+      //         | { name?: string; organizerId?: number }[];
+      //     },
+      //   ) => {
+      //     const serviceData = Array.isArray(quote.service)
+      //       ? quote.service[0]
+      //       : quote.service;
+      //     const eventData = Array.isArray(quote.event)
+      //       ? quote.event[0]
+      //       : quote.event;
 
-        if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
+      //     const serviceTypeId = serviceData?.serviceTypeId ?? 'unknown';
+      //     const serviceName = serviceData?.name ?? 'Unknown service';
+      //     const eventName = eventData?.name ?? 'Unnamed event';
 
-        grouped[serviceTypeId].push({
-          id: quote.id,
-          name: serviceName,
-          price: quote.price,
-          eventId: quote.eventId,
-          eventName,
-          status: quote.status,
-          date: quote.date,
-          quantity: quote.quantity,
-        });
-      },
-    );
+      const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
+      const serviceName = quote.service?.name ?? 'Unknown service';
+      const eventName = quote.event?.name ?? 'Unnamed event';
+
+      const serviceInfo = await this.serviceTypeService.findOne(
+        parseInt(serviceTypeId),
+      );
+      console.log(serviceInfo);
+
+      if (!grouped[serviceInfo.name]) grouped[serviceInfo.name] = [];
+
+      grouped[serviceInfo.name].push({
+        id: quote.id,
+        name: serviceName,
+        price: quote.price,
+        eventId: quote.eventId,
+        eventName,
+        status: quote.status,
+        date: quote.date,
+        quantity: quote.quantity,
+      });
+
+      console.log(grouped);
+    }
 
     return grouped;
   }
-  //listar proveedores con cotizaciones aprobadas
-  async getAcceptedProvidersByEvent(eventId: number) {
-    const quotes = await this.quoteModel
-      .find({ eventId, status: 'accepted' })
-      .lean();
 
-    //Por si no no hay proveedores con co cotizaciones aprobadas
-    if (!quotes.length) {
-      return [];
-    }
-
-    const providersMap = new Map<number, string>();
-
-    quotes.forEach((quote: Quote & { service?: Service }) => {
-      if (quote.providerId && quote.service) {
-        providersMap.set(quote.providerId, `Proveedor #${quote.providerId}`);
-      }
-    });
-
-    // Convetir el mapa a lista de objetos
-    const providersList = Array.from(providersMap.entries()).map(
-      ([providerId, providerName]) => ({
-        providerId,
-        providerName,
-      }),
+  async acceptQuote(id: number) {
+    const quote = await this.quoteModel.findOne({ id: id });
+    if (!quote) throw new NotFoundException('La cotización no fue encontrada');
+    quote.status = 'accepted';
+    await quote.save();
+    const newInfo = {
+      serviceTypeId: quote.service?.serviceTypeId,
+      price: quote.price,
+      quantity: quote.quantity,
+      providerId: quote.providerId.toString(),
+      date: quote.date,
+    };
+    await this.eventService.addQuote(
+      quote.eventId.toString(),
+      quote.toServiceId,
+      newInfo,
     );
+    return quote;
+  }
 
-    return providersList;
+  async rejectQuote(id: number) {
+    const quote = await this.quoteModel.findOne({ id: id });
+    if (!quote) throw new NotFoundException('La cotización no fue encontrada');
+    quote.status = 'rejected';
+    return await quote.save();
   }
 }

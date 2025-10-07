@@ -24,18 +24,14 @@ import { Role } from 'src/auth/roles.enum';
 import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { EventService } from 'src/event/event.service';
 
+@ApiBearerAuth()
 @ApiTags('Tasks')
 @Controller('events/:eventId/tasks')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class TaskController {
-  constructor(
-    private readonly taskService: TaskService,
-    private readonly eventService: EventService,
-  ) {}
+  constructor(private readonly taskService: TaskService) {}
 
-  @ApiBearerAuth()
   @Post()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Create task in an event' })
@@ -44,13 +40,12 @@ export class TaskController {
   async create(@Param('eventId') eventId: string, @Body() dto: CreateTaskDto) {
     const task = await this.taskService.createTask(eventId, dto);
     return {
-      message: '201',
+      message: '000',
       description: 'Tasks successfully completed',
       data: task,
     };
   }
 
-  @ApiBearerAuth()
   @Get()
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'List tasks for an event' })
@@ -58,13 +53,12 @@ export class TaskController {
   async findAll(@Param('eventId') eventId: string) {
     const tasks = await this.taskService.getTasks(eventId);
     return {
-      message: '201',
+      message: '000',
       description: 'Tasks successfully completed',
       data: tasks,
     };
   }
 
-  @ApiBearerAuth()
   @Patch(':taskId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Update an event task' })
@@ -76,10 +70,9 @@ export class TaskController {
     @Body() dto: UpdateTaskDto,
   ) {
     const task = await this.taskService.updateTask(eventId, taskId, dto);
-    return { message: '201', description: 'Task completed', data: task };
+    return { message: '000', description: 'Task completed', data: task };
   }
 
-  @ApiBearerAuth()
   @Patch(':taskId/finalize')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'End task of an event' })
@@ -89,10 +82,9 @@ export class TaskController {
     @Param('taskId') taskId: string,
   ) {
     const task = await this.taskService.finalizeTask(eventId, taskId);
-    return { message: '201', description: 'Task completed', data: task };
+    return { message: '000', description: 'Task completed', data: task };
   }
 
-  @ApiBearerAuth()
   @Patch('by-name/:taskName')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Update task by name' })
@@ -106,10 +98,9 @@ export class TaskController {
       taskName,
       dto,
     );
-    return { message: '201', description: 'Task updated by name', data: task };
+    return { message: '000', description: 'Task updated by name', data: task };
   }
 
-  @ApiBearerAuth()
   @Delete(':taskId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Delete task by id' })
@@ -120,13 +111,12 @@ export class TaskController {
   ) {
     const task = await this.taskService.deleteTaskById(eventId, taskId);
     return {
-      message: '201',
+      message: '000',
       description: 'Task deleted successfully',
       data: task,
     };
   }
 
-  @ApiBearerAuth()
   @Patch(':eventId/tasks/:taskId/assign-provider/:providerId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Asignar proveedor a una tarea' })
@@ -144,10 +134,9 @@ export class TaskController {
       taskId,
       providerId,
     );
-    return { message: '201', description: 'Proveedor asignado', data: event };
+    return { message: '000', description: 'Proveedor asignado', data: event };
   }
 
-  @ApiBearerAuth()
   @Patch(':eventId/tasks/:taskId/unassign-provider')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Desasignar proveedor de una tarea' })
@@ -167,7 +156,7 @@ export class TaskController {
       taskId,
     );
     return {
-      message: '201',
+      message: '000',
       description: 'Proveedor desasignado',
       data: event,
     };

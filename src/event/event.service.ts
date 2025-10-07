@@ -15,11 +15,13 @@ import { CatalogService } from 'src/catalog/catalog.service';
 import { FilteredEvent } from './event.interfaces';
 import { Service } from 'src/service/service.document';
 import { AddServiceDto } from './dto/event-service.dto';
+import { Quote, QuoteDocument } from 'src/quote/quote.document';
 
 @Injectable()
 export class EventService {
   constructor(
     @InjectModel(Event.name) private readonly eventModel: Model<Event>,
+    @InjectModel(Quote.name) private readonly quoteModel: Model<QuoteDocument>,
     @InjectRepository(EventType)
     private readonly eventTypeRepository: Repository<EventType>,
     private readonly catalogService: CatalogService,
@@ -388,20 +390,32 @@ export class EventService {
     return event.save();
   }
 
-  //listar los proveedores de un evento
-  async findProvidersByEvent(eventId: string) {
-    const event = await this.eventModel.findOne({ eventId }).exec();
+  // listar proveedores con cotizaciones aprobadas
+  async getAcceptedProvidersByEvent(eventId: number) {
+    const quotes = (await this.quoteModel
+      .find({ eventId, status: 'accepted' })
+      .lean()
+      .exec()) as unknown as (Quote & { service?: Service })[];
 
-    if (!event) {
-      throw new NotFoundException(`El evento con id ${eventId} no existe`);
+    if (!quotes.length) {
+      return [];
     }
 
-    // Filtrarlos proveedores que tengan cotizaciones aprobadas
-    const providerIds =
-      event.services
-        ?.filter((s) => s.quote && s.quote.providerId)
-        .map((s) => s.quote!.providerId) ?? [];
+    const providersMap = new Map<number, string>();
 
-    return providerIds;
+    quotes.forEach((quote) => {
+      if (quote.providerId) {
+        providersMap.set(quote.providerId, `Proveedor #${quote.providerId}`);
+      }
+    });
+
+    const providersList = Array.from(providersMap.entries()).map(
+      ([providerId, providerName]) => ({
+        providerId,
+        providerName,
+      }),
+    );
+
+    return providersList;
   }
 }
