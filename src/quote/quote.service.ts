@@ -162,7 +162,8 @@ export class QuoteService {
     if (status) filter.status = status;
 
     const quotes = await this.quoteModel.find(filter).sort({ date: -1 }).lean();
-    if (!quotes.length) throw new NotFoundException('No sent quotes found');
+    // if (!quotes.length) throw new NotFoundException('No sent quotes found');
+    if (!quotes.length) return [];
 
     const grouped: Record<string, Array<any>> = {};
 

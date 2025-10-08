@@ -67,7 +67,7 @@ export class TaskService {
   }
 
   async createTask(eventId: string, dto: CreateTaskDto): Promise<Task> {
-    const event = await this.eventService.findById(eventId);
+    const event = await this.eventService.findByStringId(eventId);
     if (!event) {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
