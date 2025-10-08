@@ -175,4 +175,13 @@ export class EventController {
   ) {
     return await this.eventService.removeService(eventId, serviceName);
   }
+
+  @Get('accepted/:eventId')
+  @Roles(Role.Organizer)
+  @ApiOperation({
+    summary: 'Listar proveedores con cotización aceptada en un evento',
+  })
+  async getAcceptedProviders(@Param('eventId') eventId: string) {
+    return this.eventService.getAcceptedProvidersByEvent(Number(eventId));
+  }
 }

@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event, EventDocument } from './event.document';
@@ -16,12 +12,14 @@ import { FilteredEvent } from './event.interfaces';
 import { Service } from 'src/service/service.document';
 import { AddServiceDto } from './dto/event-service.dto';
 import { Quote, QuoteDocument } from 'src/quote/quote.document';
+import { User } from 'src/user/user.entity';
+import { In } from 'typeorm';
 
-@Injectable()
 export class EventService {
   constructor(
     @InjectModel(Event.name) private readonly eventModel: Model<Event>,
     @InjectModel(Quote.name) private readonly quoteModel: Model<QuoteDocument>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>, // ✅ CORRECTO
     @InjectRepository(EventType)
     private readonly eventTypeRepository: Repository<EventType>,
     private readonly catalogService: CatalogService,
@@ -392,30 +390,41 @@ export class EventService {
 
   // listar proveedores con cotizaciones aprobadas
   async getAcceptedProvidersByEvent(eventId: number) {
-    const quotes = (await this.quoteModel
+    //filtrar pro cotización aceptada
+    const quotes = await this.quoteModel
       .find({ eventId, status: 'accepted' })
       .lean()
-      .exec()) as unknown as (Quote & { service?: Service })[];
+      .exec();
 
     if (!quotes.length) {
       return [];
     }
 
-    const providersMap = new Map<number, string>();
+    //vector de ids únicos de proveedores
+    const providerIds = [...new Set(quotes.map((q) => q.providerId))];
 
-    quotes.forEach((quote) => {
-      if (quote.providerId) {
-        providersMap.set(quote.providerId, `Proveedor #${quote.providerId}`);
-      }
+    //buscar los datos de los proveedores en User
+    const providers = await this.userRepository.find({
+      where: { id: In(providerIds) },
+      select: ['id', 'firstName', 'lastName'],
     });
 
-    const providersList = Array.from(providersMap.entries()).map(
-      ([providerId, providerName]) => ({
-        providerId,
-        providerName,
-      }),
-    );
+    //construir respuesta combinando Quote + User
+    const result = quotes.map((quote) => {
+      const provider = providers.find((p) => p.id === quote.providerId);
+      return {
+        providerId: quote.providerId,
+        providerName: provider
+          ? `${provider.firstName} ${provider.lastName}`
+          : `Proveedor #${quote.providerId}`,
+        service: {
+          serviceTypeId: quote.service?.serviceTypeId,
+          name: quote.service?.name,
+          description: quote.service?.description,
+        },
+      };
+    });
 
-    return providersList;
+    return result;
   }
 }
