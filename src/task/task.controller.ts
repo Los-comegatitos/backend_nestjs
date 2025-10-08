@@ -14,6 +14,7 @@ import {
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './task.document';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -197,4 +198,47 @@ export class TaskController {
   //   console.log(id);
   //   return await this.taskService.resetBucket();
   // }
+
+  @ApiBearerAuth()
+  @Patch(':taskId/comment')
+  @Roles(Role.Organizer, Role.Provider)
+  @ApiOperation({ summary: 'Add comment to a task' })
+  @ApiBody({ type: CreateCommentDto })
+  async addComment(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Body() dto: CreateCommentDto,
+    @Body('userType') userType: 'organizer' | 'provider',
+    @Body('userId') userId: string,
+  ) {
+    const comment = await this.taskService.addComment(
+      eventId,
+      taskId,
+      dto,
+      userId,
+      userType,
+    );
+
+    return {
+      message: '000',
+      description: 'Comment added successfully',
+      data: comment,
+    };
+  }
+
+  @ApiBearerAuth()
+  @Get(':taskId/comments')
+  @Roles(Role.Organizer, Role.Provider)
+  @ApiOperation({ summary: 'List comments of a task in chronological order' })
+  async getComments(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+  ) {
+    const comments = await this.taskService.getTaskComments(eventId, taskId);
+    return {
+      message: '000',
+      description: 'Comments retrieved successfully',
+      data: comments,
+    };
+  }
 }

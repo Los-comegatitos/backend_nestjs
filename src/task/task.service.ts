@@ -9,16 +9,22 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { EventService } from 'src/event/event.service';
 import { GridFSBucket } from 'mongodb';
-import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
 import { Readable } from 'stream';
+import { Event, EventDocument } from 'src/event/event.document';
+import { Quote, QuoteDocument } from 'src/quote/quote.document';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { Comment } from './task.document';
+import { ForbiddenException } from '@nestjs/common';
 
 @Injectable()
 export class TaskService {
   private gridFSBucket: GridFSBucket;
 
   constructor(
-    // @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+    @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+    @InjectModel(Quote.name) private quoteModel: Model<QuoteDocument>,
     @InjectConnection() private readonly connection: Connection,
     private readonly eventService: EventService,
   ) {
@@ -227,5 +233,62 @@ export class TaskService {
     }
 
     return await this.getFileStream(fileId);
+  }
+
+  async addComment(
+    eventId: string,
+    taskId: string,
+    dto: CreateCommentDto,
+    userId: string,
+    userType: 'organizer' | 'provider',
+  ): Promise<Comment> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event)
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) throw new NotFoundException(`Task with id ${taskId} not found`);
+
+    // esta es la validacion para prov
+    if (userType === 'provider') {
+      const quote = await this.quoteModel.findOne({
+        eventId,
+        providerId: Number(userId),
+        status: 'accepted',
+      });
+      if (!quote)
+        throw new ForbiddenException(
+          'Provider cannot comment without an accepted quote',
+        );
+    }
+
+    const newComment: Comment = {
+      idUser: userId,
+      userType,
+      date: new Date(),
+      description: dto.description,
+    };
+
+    task.comments.push(newComment);
+    await event.save();
+
+    return newComment;
+  }
+
+  async getTaskComments(eventId: string, taskId: string): Promise<Comment[]> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event) {
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+    }
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) {
+      throw new NotFoundException(`Task with id ${taskId} not found`);
+    }
+
+    // se muestran por fecha ascendente (mas viejos primero primero)
+    return [...task.comments].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
   }
 }
