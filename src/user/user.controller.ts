@@ -6,9 +6,9 @@ import {
   Body,
   ParseIntPipe,
   UseGuards,
-  NotFoundException,
   ConflictException,
   Request,
+  Put,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -16,7 +16,9 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 interface RequestUser {
   user: {
@@ -32,12 +34,6 @@ export class UserController {
 
   @Post()
   async create(@Body() dto: CreateUserDto) {
-    if (!dto || dto.user_Typeid === undefined) {
-      throw new ConflictException(
-        'Falta información del tipo de usuario o general',
-      );
-    }
-
     const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
 
     if (typeUser.name.toLowerCase() === Role.Admin.toLowerCase()) {
@@ -51,15 +47,20 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
-  @Post('admin')
-  async createAdmin(@Body() dto: CreateUserDto, @Request() req: RequestUser) {
-    const typeUser = await this.userService.getTypeUser(dto.user_Typeid);
+  @Post('create-admin')
+  async createAdmin(@Body() dto: CreateUserDto, @Request() datos: RequestUser) {
+    const { role } = datos.user;
+    return await this.userService.create(dto, role);
+  }
 
-    if (typeUser.name.toLowerCase() !== Role.Admin.toLowerCase()) {
-      throw new ConflictException('Solo se puede crear un tipo Admin aquí');
-    }
-
-    return await this.userService.create(dto, req.user.role);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Post('update-password/:id')
+  async updatePassword(
+    @Param('id') id: number,
+    @Body() dto: UpdateUserPasswordDto,
+  ) {
+    return await this.userService.updatePassword(id, dto);
   }
 
   @ApiBearerAuth()
@@ -80,12 +81,27 @@ export class UserController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('profile')
+  async getProfile(@Request() req: RequestUser) {
+    const email = req.user.email;
+    return await this.userService.getProfile(email);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Put('profile/:id')
+  async updateUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+  ) {
+    return await this.userService.update(id, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get(':id')
   async findById(@Param('id', ParseIntPipe) id: number) {
-    const user = await this.userService.findById(id);
-    if (!user)
-      throw new NotFoundException(`El usuario con ID ${id} no fue encontrado`);
-    return user;
+    return await this.userService.findById(id);
   }
 }

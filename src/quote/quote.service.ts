@@ -15,7 +15,7 @@ export class QuoteService {
     private readonly eventService: EventService,
   ) {}
 
-  async findAmount() {
+  async findAmount(): Promise<number> {
     return await this.quoteModel.countDocuments().exec();
   }
 
@@ -29,120 +29,47 @@ export class QuoteService {
       throw new NotFoundException('No pending quotes found');
     }
 
-    const grouped: Record<
-      string,
-      Array<{
-        id: number;
-        name: string;
-        description?: string;
-        price: number;
-        eventId: number;
-        eventName?: string;
-        date?: Date;
-        quantity?: number;
-        providerId?: number;
-        status?: string;
-      }>
-    > = {};
-    console.log(quotes);
-
-    // le cambié a forof porque no me daban los await :'v
-    // quotes.forEach(
-    //   (
-    //     quote: Quote & {
-    //       service?: Service | Service[];
-    //       event?:
-    //         | { name?: string; organizerId?: number }
-    //         | { name?: string; organizerId?: number }[];
-    //     },
-    //   ) => {
-    //     const serviceData = Array.isArray(quote.service)
-    //       ? quote.service[0]
-    //       : quote.service;
-    //     const eventData = Array.isArray(quote.event)
-    //       ? quote.event[0]
-    //       : quote.event;
-
-    //     const serviceTypeId = serviceData?.serviceTypeId ?? 'unknown';
-    //     const serviceName = serviceData?.name ?? 'Unknown service';
-    //     const eventName = eventData?.name ?? 'Unnamed event';
+    const grouped: Record<string, Array<any>> = {};
 
     for (const quoteBasic of quotes) {
       const quote = quoteBasic as Quote & {
-        service?: Service;
-        event?: { name?: string };
+        service?: Service | Service[];
+        event?:
+          | { name?: string; organizerId?: number }
+          | { name?: string; organizerId?: number }[];
       };
-      const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-      const serviceName = quote.service?.name ?? 'Unknown service';
-      const eventName = quote.event?.name ?? 'Unnamed event';
 
-      console.log('UNICO');
-      console.log(quote);
-      const serviceInfo = await this.serviceTypeService.findOne(
-        parseInt(serviceTypeId),
-      );
-      console.log(serviceInfo);
+      const serviceData = Array.isArray(quote.service)
+        ? quote.service[0]
+        : quote.service;
+      const eventData = Array.isArray(quote.event)
+        ? quote.event[0]
+        : quote.event;
 
-      if (!grouped[serviceInfo.name]) grouped[serviceInfo.name] = [];
+      const serviceTypeIdNum = parseInt(serviceData?.serviceTypeId ?? '', 10);
+      if (isNaN(serviceTypeIdNum)) continue;
 
-      grouped[serviceInfo.name].push({
+      const serviceInfo =
+        await this.serviceTypeService.findOne(serviceTypeIdNum);
+      const serviceName = serviceData?.name ?? 'Unknown service';
+      const eventName = eventData?.name ?? 'Unnamed event';
+      const key = serviceInfo?.name ?? 'Unknown service type';
+
+      if (!grouped[key]) grouped[key] = [];
+
+      grouped[key].push({
         id: quote.id,
         name: serviceName,
-        description: quote.service?.description,
-        price: quote.price,
-        eventId: quote.eventId,
+        description: serviceData?.description,
+        price: quote.price ?? 0,
+        eventId: quote.eventId ?? 0,
         eventName,
-        date: quote.date,
-        quantity: quote.quantity,
-        providerId: quote.providerId,
-        status: quote.status,
+        date: quote.date ?? new Date(),
+        quantity: quote.quantity ?? 0,
+        providerId: quote.providerId ?? 0,
+        status: quote.status ?? 'pending',
       });
     }
-
-    // quotes.forEach(
-    //   async (quote: Quote & { service?: Service; event?: { name?: string } }) => {
-    //     const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-    //     const serviceName = quote.service?.name ?? 'Unknown service';
-    //     const eventName = quote.event?.name ?? 'Unnamed event';
-    //     console.log('UNICO');
-
-    //     // console.log(quote);
-
-    //     // const serviceInfo = await this.serviceTypeService.findOne(parseInt(serviceTypeId));
-    //     // console.log(serviceInfo);
-
-    //     if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
-
-    //     grouped[serviceTypeId].push({
-    //       id: quote.id,
-    //       name: serviceName,
-    //       description: quote.service?.description,
-    //       price: quote.price,
-    //       eventId: quote.eventId,
-    //       eventName,
-    //       date: quote.date,
-    //       quantity: quote.quantity,
-    //       providerId: quote.providerId,
-    //       status: quote.status,
-    //     });
-    //   },
-    // );
-
-    console.log(grouped);
-    // grouped[serviceTypeId].push({
-    //   id: quote.id,
-    //   name: serviceName,
-    //   description: serviceData?.description,
-    //   price: quote.price,
-    //   eventId: quote.eventId,
-    //   eventName,
-    //   date: quote.date,
-    //   quantity: quote.quantity,
-    //   providerId: quote.providerId,
-    //   status: quote.status,
-    // });
-    // },
-    // );
 
     return grouped;
   }
@@ -157,96 +84,75 @@ export class QuoteService {
       throw new NotFoundException('No pending quotes found for this event');
     }
 
-    const grouped: Record<
-      string,
-      Array<{
-        id: number;
-        name: string;
-        price: number;
-        eventId: number;
-        eventName?: string;
-        date?: Date;
-        quantity?: number;
-      }>
-    > = {};
+    const grouped: Record<string, Array<any>> = {};
 
-    quotes.forEach(
-      (
-        quote: Quote & {
-          service?: Service | Service[];
-          event?:
-            | { name?: string; organizerId?: number }
-            | { name?: string; organizerId?: number }[];
-        },
-      ) => {
-        const eventData = Array.isArray(quote.event)
-          ? quote.event[0]
-          : quote.event;
-        if (eventData?.organizerId !== organizerId) return;
+    for (const quoteBasic of quotes) {
+      const quote = quoteBasic as Quote & {
+        service?: Service | Service[];
+        event?:
+          | { name?: string; organizerId?: number }
+          | { name?: string; organizerId?: number }[];
+      };
 
-        const serviceData = Array.isArray(quote.service)
-          ? quote.service[0]
-          : quote.service;
+      const serviceData = Array.isArray(quote.service)
+        ? quote.service[0]
+        : quote.service;
+      const eventData = Array.isArray(quote.event)
+        ? quote.event[0]
+        : quote.event;
 
-        const serviceTypeId = serviceData?.serviceTypeId ?? 'unknown';
-        const serviceName = serviceData?.name ?? 'Unknown service';
-        const eventName = eventData?.name ?? 'Unnamed event';
+      if (!eventData || eventData.organizerId !== organizerId) continue;
 
-        if (!grouped[serviceTypeId]) grouped[serviceTypeId] = [];
+      const serviceTypeIdNum = parseInt(serviceData?.serviceTypeId ?? '', 10);
+      if (isNaN(serviceTypeIdNum)) continue;
 
-        grouped[serviceTypeId].push({
-          id: quote.id,
-          name: serviceName,
-          price: quote.price,
-          eventId: quote.eventId,
-          eventName,
-          date: quote.date,
-          quantity: quote.quantity,
-        });
-      },
-    );
+      const serviceInfo =
+        await this.serviceTypeService.findOne(serviceTypeIdNum);
+      const serviceName = serviceData?.name ?? 'Unknown service';
+      const eventName = eventData?.name ?? 'Unnamed event';
+      const key = serviceInfo?.name ?? 'Unknown service type';
+
+      if (!grouped[key]) grouped[key] = [];
+
+      grouped[key].push({
+        id: quote.id,
+        name: serviceName,
+        price: quote.price ?? 0,
+        eventId: quote.eventId ?? 0,
+        eventName,
+        date: quote.date ?? new Date(),
+        quantity: quote.quantity ?? 0,
+      });
+    }
 
     return grouped;
   }
 
   async sendQuotes(body: QuoteDto, userId: number) {
-    const serviceTypeId = parseInt(body.service.serviceTypeId);
-    const eventType = await this.serviceTypeService.findOne(serviceTypeId);
+    const serviceTypeIdNum = parseInt(body.service.serviceTypeId, 10);
+    if (isNaN(serviceTypeIdNum)) return; // lo que hare sera lo siguinete omitir quotes invalidas
 
-    if (!eventType) {
-      throw new NotFoundException(
-        `ServiceType con id ${serviceTypeId} no existe`,
-      );
-    }
+    const eventType = await this.serviceTypeService.findOne(serviceTypeIdNum);
+    if (!eventType) return;
 
-    const eventId = body.eventId;
-    const event = await this.eventService.findByStringId(eventId);
+    const event = await this.eventService.findByStringId(body.eventId);
+    if (!event) return;
 
-    if (!event) {
-      throw new NotFoundException(`Event con id ${eventId} no existe`);
-    }
+    const id = (await this.findAmount()) + 1;
 
-    let id = await this.findAmount();
-    id++;
-
-    const info = {
-      event: {
-        organizerId: event.organizerUserId,
-        name: event.name,
-      },
-    };
-
-    const newData = {
+    const newQuote = new this.quoteModel({
       ...body,
       providerId: userId,
       date: new Date(),
       status: 'pending',
       id,
-      ...info,
-    };
+      event: {
+        organizerId: event.organizerUserId,
+        name: event.name,
+      },
+    });
 
-    const newQuote = new this.quoteModel(newData);
-    void newQuote.save();
+    await newQuote.save();
   }
 
   async getSentQuotesByProvider(providerId: number, status?: string) {
@@ -256,73 +162,45 @@ export class QuoteService {
     if (status) filter.status = status;
 
     const quotes = await this.quoteModel.find(filter).sort({ date: -1 }).lean();
+    // if (!quotes.length) throw new NotFoundException('No sent quotes found');
+    if (!quotes.length) return [];
 
-    if (!quotes.length) {
-      throw new NotFoundException('No sent quotes found');
-    }
-
-    const grouped: Record<
-      string,
-      Array<{
-        id: number;
-        name: string;
-        price: number;
-        eventId: number;
-        eventName?: string;
-        status: string;
-        date?: Date;
-        quantity?: number;
-      }>
-    > = {};
+    const grouped: Record<string, Array<any>> = {};
 
     for (const quoteBasic of quotes) {
       const quote = quoteBasic as Quote & {
-        service?: Service;
-        event?: { name?: string };
+        service?: Service | Service[];
+        event?: { name?: string } | { name?: string }[];
       };
-      // quotes.forEach(
-      //   (
-      //     quote: Quote & {
-      //       service?: Service | Service[];
-      //       event?:
-      //         | { name?: string; organizerId?: number }
-      //         | { name?: string; organizerId?: number }[];
-      //     },
-      //   ) => {
-      //     const serviceData = Array.isArray(quote.service)
-      //       ? quote.service[0]
-      //       : quote.service;
-      //     const eventData = Array.isArray(quote.event)
-      //       ? quote.event[0]
-      //       : quote.event;
 
-      //     const serviceTypeId = serviceData?.serviceTypeId ?? 'unknown';
-      //     const serviceName = serviceData?.name ?? 'Unknown service';
-      //     const eventName = eventData?.name ?? 'Unnamed event';
+      const serviceData = Array.isArray(quote.service)
+        ? quote.service[0]
+        : quote.service;
+      const eventData = Array.isArray(quote.event)
+        ? quote.event[0]
+        : quote.event;
 
-      const serviceTypeId = quote.service?.serviceTypeId ?? 'unknown';
-      const serviceName = quote.service?.name ?? 'Unknown service';
-      const eventName = quote.event?.name ?? 'Unnamed event';
+      const serviceTypeIdNum = parseInt(serviceData?.serviceTypeId ?? '', 10);
+      if (isNaN(serviceTypeIdNum)) continue;
 
-      const serviceInfo = await this.serviceTypeService.findOne(
-        parseInt(serviceTypeId),
-      );
-      console.log(serviceInfo);
+      const serviceInfo =
+        await this.serviceTypeService.findOne(serviceTypeIdNum);
+      const serviceName = serviceData?.name ?? 'Unknown service';
+      const eventName = eventData?.name ?? 'Unnamed event';
+      const key = serviceInfo?.name ?? 'Unknown service type';
 
-      if (!grouped[serviceInfo.name]) grouped[serviceInfo.name] = [];
+      if (!grouped[key]) grouped[key] = [];
 
-      grouped[serviceInfo.name].push({
+      grouped[key].push({
         id: quote.id,
         name: serviceName,
-        price: quote.price,
-        eventId: quote.eventId,
+        price: quote.price ?? 0,
+        eventId: quote.eventId ?? 0,
         eventName,
-        status: quote.status,
-        date: quote.date,
-        quantity: quote.quantity,
+        status: quote.status ?? 'pending',
+        date: quote.date ?? new Date(),
+        quantity: quote.quantity ?? 0,
       });
-
-      console.log(grouped);
     }
 
     return grouped;
@@ -337,9 +215,10 @@ export class QuoteService {
       serviceTypeId: quote.service?.serviceTypeId,
       price: quote.price,
       quantity: quote.quantity,
-      providerId: quote.providerId.toString(),
+      providerId: quote.providerId?.toString(),
       date: quote.date,
     };
+
     await this.eventService.addQuote(
       quote.eventId.toString(),
       quote.toServiceId,

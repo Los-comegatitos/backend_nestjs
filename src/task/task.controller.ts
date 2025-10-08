@@ -7,6 +7,9 @@ import {
   UseGuards,
   Patch,
   Delete,
+  UploadedFile,
+  UseInterceptors,
+  Res,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -18,12 +21,16 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiConsumes,
+  ApiProduces,
 } from '@nestjs/swagger';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 
 @ApiBearerAuth()
 @ApiTags('Tasks')
@@ -161,4 +168,78 @@ export class TaskController {
       data: event,
     };
   }
+  @Post(':taskId/file')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Upload file for a task' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'File uploaded successfully',
+    type: File,
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const task = await this.taskService.savingFile(eventId, taskId, file);
+    return {
+      description: 'File uploaded successfully',
+      data: task,
+    };
+  }
+
+  @Get(':taskId/file/:fileId')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'download file for a task' })
+  @ApiProduces('application/octet-stream')
+  @ApiResponse({
+    status: 200,
+    description: 'File downloaded successfully',
+    content: {
+      'application/octet-stream': {
+        schema: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  async downloadFile(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Param('fileId') fileId: string,
+    @Res() res: Response,
+  ) {
+    // return this.taskService.getFileStream(fileId);
+    const info = await this.taskService.obtainingFile(eventId, taskId, fileId);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${fileId}"`);
+    res.setHeader('Content-Type', info.type);
+
+    info.stream.pipe(res);
+  }
+
+  // @Delete('files/:id')
+  // @ApiOperation({ summary: 'ESTO BORRA TODOS LOS ARCHIVOS Y SU BUCKET, NO LO USEN EL FRONTEND' })
+  // async kickthebucket(
+  //   @Param('eventId') eventId: string,
+  //   @Param('id') id: string,
+  // ) {
+  //   console.log(eventId);
+  //   console.log(id);
+  //   return await this.taskService.resetBucket();
+  // }
 }

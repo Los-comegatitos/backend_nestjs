@@ -33,7 +33,7 @@ export class Service {
   description: string;
   @Prop({ type: Number })
   quantity: number | null;
-  @Prop({ type: QuoteSchema, default: null })
+  @Prop({ type: () => QuoteSchema, default: null })
   quote: Quote | null;
 }
 
