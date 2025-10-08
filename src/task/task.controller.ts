@@ -20,6 +20,7 @@ import {
   ApiBody,
   ApiResponse,
   ApiBearerAuth,
+  ApiParam,
   ApiConsumes,
   ApiProduces,
 } from '@nestjs/swagger';
@@ -123,6 +124,50 @@ export class TaskController {
     };
   }
 
+  @Patch(':eventId/tasks/:taskId/assign-provider/:providerId')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Asignar proveedor a una tarea' })
+  @ApiParam({ name: 'eventId', type: String })
+  @ApiParam({ name: 'taskId', type: String })
+  @ApiParam({ name: 'providerId', type: String })
+  @ApiResponse({ status: 200, description: 'Proveedor asignado', type: Event })
+  async assignProvider(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Param('providerId') providerId: string,
+  ) {
+    const event = await this.taskService.assignProviderToTask(
+      eventId,
+      taskId,
+      providerId,
+    );
+    return { message: '000', description: 'Proveedor asignado', data: event };
+  }
+
+  @Patch(':eventId/tasks/:taskId/unassign-provider')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Desasignar proveedor de una tarea' })
+  @ApiParam({ name: 'eventId', type: String })
+  @ApiParam({ name: 'taskId', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Proveedor desasignado',
+    type: Event,
+  })
+  async unassignProvider(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+  ) {
+    const event = await this.taskService.unassignProviderFromTask(
+      eventId,
+      taskId,
+    );
+    return {
+      message: '000',
+      description: 'Proveedor desasignado',
+      data: event,
+    };
+  }
   @Post(':taskId/file')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Upload file for a task' })

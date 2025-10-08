@@ -9,16 +9,17 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { EventService } from 'src/event/event.service';
 import { GridFSBucket } from 'mongodb';
-import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
 import { Readable } from 'stream';
+import { EventDocument } from 'src/event/event.document';
 
 @Injectable()
 export class TaskService {
   private gridFSBucket: GridFSBucket;
 
   constructor(
-    // @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+    @InjectModel(Event.name) private eventModel: Model<EventDocument>,
     @InjectConnection() private readonly connection: Connection,
     private readonly eventService: EventService,
   ) {
@@ -227,5 +228,63 @@ export class TaskService {
     }
 
     return await this.getFileStream(fileId);
+  }
+
+  async assignProviderToTask(
+    eventId: string,
+    taskId: string,
+    providerId: string,
+  ): Promise<EventDocument> {
+    const event = await this.eventModel.findOne({ eventId });
+
+    if (!event) {
+      throw new NotFoundException('El evento no existe.');
+    }
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) {
+      throw new NotFoundException('La tarea no existe en este evento.');
+    }
+
+    if (task.associatedProviderId) {
+      throw new BadRequestException('La tarea ya tiene un proveedor asignado.');
+    }
+
+    const providerIsValid = event.services.some(
+      (s) => s.quote?.providerId === providerId,
+    );
+    if (!providerIsValid) {
+      throw new BadRequestException(
+        'El proveedor no está ofreciendo servicios en este evento.',
+      );
+    }
+
+    task.associatedProviderId = providerId;
+    return event.save();
+  }
+
+  async unassignProviderFromTask(
+    eventId: string,
+    taskId: string,
+  ): Promise<EventDocument> {
+    const event = await this.eventModel.findOne({ eventId });
+
+    if (!event) {
+      throw new NotFoundException('El evento no existe.');
+    }
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) {
+      throw new NotFoundException('La tarea no existe en este evento.');
+    }
+
+    if (!task.associatedProviderId) {
+      throw new BadRequestException(
+        'La tarea no tiene ningún proveedor asignado.',
+      );
+    }
+
+    task.associatedProviderId = null;
+    return event.save();
   }
 }
