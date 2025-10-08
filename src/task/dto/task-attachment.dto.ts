@@ -11,4 +11,10 @@ export class AttachmentDto {
   @IsNotEmpty({ message: 'Description cannot be empty' })
   @IsString({ message: 'The name must be a text' })
   fileName: string;
+
+  @ApiProperty({
+    description: 'Image Datas',
+    format: 'binary',
+  })
+  file: Express.Multer.File;
 }
