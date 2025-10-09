@@ -176,60 +176,12 @@ export class EventController {
     return await this.eventService.removeService(eventId, serviceName);
   }
 
-  /*@Get(':id/providers')
-  @ApiOperation({ summary: 'Listar proveedores (usuarios con rol proveedor) asociados a un evento' })
-  @ApiParam({ name: 'id', type: String, description: 'ID del evento' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de usuarios que son proveedores para este evento',
-    type: [User],
-  })
-  async getProviders(@Param('id') id: string) {
-    return await this.eventService.getProviders(id);
-  }*/
-
-  @Patch(':eventId/tasks/:taskId/assign-provider/:providerId')
+  @Get('accepted/:eventId')
   @Roles(Role.Organizer)
-  @ApiOperation({ summary: 'Asignar proveedor a una tarea' })
-  @ApiParam({ name: 'eventId', type: String })
-  @ApiParam({ name: 'taskId', type: String })
-  @ApiParam({ name: 'providerId', type: String })
-  @ApiResponse({ status: 200, description: 'Proveedor asignado', type: Event })
-  async assignProvider(
-    @Param('eventId') eventId: string,
-    @Param('taskId') taskId: string,
-    @Param('providerId') providerId: string,
-  ) {
-    const event = await this.eventService.assignProviderToTask(
-      eventId,
-      taskId,
-      providerId,
-    );
-    return { message: '000', description: 'Proveedor asignado', data: event };
-  }
-
-  @Patch(':eventId/tasks/:taskId/unassign-provider')
-  @Roles(Role.Organizer)
-  @ApiOperation({ summary: 'Desasignar proveedor de una tarea' })
-  @ApiParam({ name: 'eventId', type: String })
-  @ApiParam({ name: 'taskId', type: String })
-  @ApiResponse({
-    status: 200,
-    description: 'Proveedor desasignado',
-    type: Event,
+  @ApiOperation({
+    summary: 'Listar proveedores con cotización aceptada en un evento',
   })
-  async unassignProvider(
-    @Param('eventId') eventId: string,
-    @Param('taskId') taskId: string,
-  ) {
-    const event = await this.eventService.unassignProviderFromTask(
-      eventId,
-      taskId,
-    );
-    return {
-      message: '000',
-      description: 'Proveedor desasignado',
-      data: event,
-    };
+  async getAcceptedProviders(@Param('eventId') eventId: string) {
+    return this.eventService.getAcceptedProvidersByEvent(Number(eventId));
   }
 }

@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { ServiceService } from './service.service';
 import { ServiceController } from './service.controller';
-import { Service } from './service.document';
+import { Event, EventSchema } from 'src/event/event.document';
 
 @Module({
-  providers: [ServiceService, Service],
+  imports: [
+    MongooseModule.forFeature([{ name: Event.name, schema: EventSchema }]),
+  ],
+  providers: [ServiceService],
   controllers: [ServiceController],
 })
 export class ServiceModule {}
