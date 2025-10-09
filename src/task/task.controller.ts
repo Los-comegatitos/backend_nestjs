@@ -6,6 +6,7 @@ import {
   Body,
   UseGuards,
   Patch,
+  Req,
   Delete,
   UploadedFile,
   UseInterceptors,
@@ -31,6 +32,8 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { Request as ExpressRequest } from 'express';
 
 @ApiBearerAuth()
 @ApiTags('Tasks')
@@ -242,5 +245,69 @@ export class TaskController {
   //   console.log(id);
   //   return await this.taskService.resetBucket();
   // }
-}
 
+  @ApiBearerAuth()
+  @Patch(':taskId/comment')
+  @Roles(Role.Organizer, Role.Provider)
+  @ApiOperation({ summary: 'Add comment to a task' })
+  @ApiBody({ type: CreateCommentDto })
+  async addComment(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Body() dto: CreateCommentDto,
+    @Req() req: ExpressRequest,
+  ) {
+    const { userId, role } = req.user as {
+      userId: number;
+      email: string;
+      role: Role;
+    };
+
+    const userType = role === Role.Organizer ? 'organizer' : 'provider';
+
+    const comment = await this.taskService.addComment(
+      eventId,
+      taskId,
+      dto,
+      userId.toString(),
+      userType,
+    );
+
+    return {
+      message: '000',
+      description: 'Comment added successfully',
+      data: comment,
+    };
+  }
+
+  @ApiBearerAuth()
+  @Get(':taskId')
+  @Roles(Role.Organizer, Role.Provider)
+  @ApiOperation({ summary: 'Get task details including comments' })
+  async getTaskById(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Req() req: ExpressRequest,
+  ) {
+    const { userId, role } = req.user as {
+      userId: number;
+      email: string;
+      role: Role;
+    };
+
+    const userType = role === Role.Organizer ? 'organizer' : 'provider';
+
+    const task = await this.taskService.getTaskById(
+      eventId,
+      taskId,
+      userId.toString(),
+      userType,
+    );
+
+    return {
+      message: '000',
+      description: 'Task retrieved successfully',
+      data: task,
+    };
+  }
+}
