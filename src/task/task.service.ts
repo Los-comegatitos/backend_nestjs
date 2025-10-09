@@ -96,7 +96,7 @@ export class TaskService {
   }
 
   async getTasks(eventId: string): Promise<Task[]> {
-    const event = await this.eventService.findById(eventId);
+    const event = await this.eventService.findByStringId(eventId);
     if (!event) {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
@@ -108,7 +108,7 @@ export class TaskService {
     taskId: string,
     updateTaskDto: UpdateTaskDto,
   ): Promise<Task> {
-    const event = await this.eventService.findById(eventId);
+    const event = await this.eventService.findByStringId(eventId);
     if (!event) {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
@@ -125,7 +125,7 @@ export class TaskService {
   }
 
   async finalizeTask(eventId: string, taskId: string): Promise<Task> {
-    const event = await this.eventService.findById(eventId);
+    const event = await this.eventService.findByStringId(eventId);
     if (!event) {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
@@ -151,7 +151,7 @@ export class TaskService {
     taskName: string,
     updateTaskDto: UpdateTaskDto,
   ): Promise<Task> {
-    const event = await this.eventService.findById(eventId);
+    const event = await this.eventService.findByStringId(eventId);
     if (!event)
       throw new NotFoundException(`Evento con id  ${eventId} no existe`);
 
@@ -166,7 +166,7 @@ export class TaskService {
   }
 
   async deleteTaskById(eventId: string, taskId: string): Promise<Task> {
-    const event = await this.eventService.findById(eventId);
+    const event = await this.eventService.findByStringId(eventId);
     if (!event) {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
