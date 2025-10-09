@@ -6,6 +6,7 @@ import {
   Body,
   UseGuards,
   Patch,
+  Req,
   Delete,
   UploadedFile,
   UseInterceptors,
@@ -31,6 +32,8 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { Request as ExpressRequest } from 'express';
 
 @ApiBearerAuth()
 @ApiTags('Tasks')
@@ -242,4 +245,82 @@ export class TaskController {
   //   console.log(id);
   //   return await this.taskService.resetBucket();
   // }
+
+  @ApiBearerAuth()
+  @Patch(':taskId/comment/organizer')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Organizer adds a comment to a task' })
+  @ApiBody({ type: CreateCommentDto })
+  async addCommentAsOrganizer(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Body() dto: CreateCommentDto,
+    @Req() req: ExpressRequest,
+  ) {
+    const { userId } = req.user as { userId: number; role: Role };
+    const comment = await this.taskService.addCommentAsOrganizer(
+      eventId,
+      taskId,
+      dto,
+      userId.toString(),
+    );
+
+    return {
+      message: '000',
+      description: 'Comment added successfully by organizer',
+      data: comment,
+    };
+  }
+
+  @ApiBearerAuth()
+  @Patch(':taskId/comment/provider')
+  @Roles(Role.Provider)
+  @ApiOperation({ summary: 'Provider adds a comment to their assigned task' })
+  @ApiBody({ type: CreateCommentDto })
+  async addCommentAsProvider(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Body() dto: CreateCommentDto,
+    @Req() req: ExpressRequest,
+  ) {
+    const { userId } = req.user as { userId: number; role: Role };
+    const comment = await this.taskService.addCommentAsProvider(
+      eventId,
+      taskId,
+      dto,
+      userId.toString(),
+    );
+
+    return {
+      message: '000',
+      description: 'Comment added successfully by provider',
+      data: comment,
+    };
+  }
+
+  @ApiBearerAuth()
+  @Get(':taskId/comments')
+  @Roles(Role.Organizer, Role.Provider)
+  @ApiOperation({ summary: 'Get comments of a task' })
+  async getTaskComments(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Req() req: ExpressRequest,
+  ) {
+    const { userId, role } = req.user as { userId: number; role: Role };
+    const userType = role === Role.Organizer ? 'organizer' : 'provider';
+
+    const comments = await this.taskService.getTaskComments(
+      eventId,
+      taskId,
+      userId.toString(),
+      userType,
+    );
+
+    return {
+      message: '000',
+      description: 'Comments retrieved successfully',
+      data: comments,
+    };
+  }
 }
