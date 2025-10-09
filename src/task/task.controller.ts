@@ -247,57 +247,70 @@ export class TaskController {
   // }
 
   @ApiBearerAuth()
-  @Patch(':taskId/comment')
-  @Roles(Role.Organizer, Role.Provider)
-  @ApiOperation({ summary: 'Add comment to a task' })
+  @Patch(':taskId/comment/organizer')
+  @Roles(Role.Organizer)
+  @ApiOperation({ summary: 'Organizer adds a comment to a task' })
   @ApiBody({ type: CreateCommentDto })
-  async addComment(
+  async addCommentAsOrganizer(
     @Param('eventId') eventId: string,
     @Param('taskId') taskId: string,
     @Body() dto: CreateCommentDto,
     @Req() req: ExpressRequest,
   ) {
-    const { userId, role } = req.user as {
-      userId: number;
-      email: string;
-      role: Role;
-    };
-
-    const userType = role === Role.Organizer ? 'organizer' : 'provider';
-
-    const comment = await this.taskService.addComment(
+    const { userId } = req.user as { userId: number; role: Role };
+    const comment = await this.taskService.addCommentAsOrganizer(
       eventId,
       taskId,
       dto,
       userId.toString(),
-      userType,
     );
 
     return {
       message: '000',
-      description: 'Comment added successfully',
+      description: 'Comment added successfully by organizer',
       data: comment,
     };
   }
 
   @ApiBearerAuth()
-  @Get(':taskId')
+  @Patch(':taskId/comment/provider')
+  @Roles(Role.Provider)
+  @ApiOperation({ summary: 'Provider adds a comment to their assigned task' })
+  @ApiBody({ type: CreateCommentDto })
+  async addCommentAsProvider(
+    @Param('eventId') eventId: string,
+    @Param('taskId') taskId: string,
+    @Body() dto: CreateCommentDto,
+    @Req() req: ExpressRequest,
+  ) {
+    const { userId } = req.user as { userId: number; role: Role };
+    const comment = await this.taskService.addCommentAsProvider(
+      eventId,
+      taskId,
+      dto,
+      userId.toString(),
+    );
+
+    return {
+      message: '000',
+      description: 'Comment added successfully by provider',
+      data: comment,
+    };
+  }
+
+  @ApiBearerAuth()
+  @Get(':taskId/comments')
   @Roles(Role.Organizer, Role.Provider)
-  @ApiOperation({ summary: 'Get task details including comments' })
-  async getTaskById(
+  @ApiOperation({ summary: 'Get comments of a task' })
+  async getTaskComments(
     @Param('eventId') eventId: string,
     @Param('taskId') taskId: string,
     @Req() req: ExpressRequest,
   ) {
-    const { userId, role } = req.user as {
-      userId: number;
-      email: string;
-      role: Role;
-    };
-
+    const { userId, role } = req.user as { userId: number; role: Role };
     const userType = role === Role.Organizer ? 'organizer' : 'provider';
 
-    const task = await this.taskService.getTaskById(
+    const comments = await this.taskService.getTaskComments(
       eventId,
       taskId,
       userId.toString(),
@@ -306,8 +319,8 @@ export class TaskController {
 
     return {
       message: '000',
-      description: 'Task retrieved successfully',
-      data: task,
+      description: 'Comments retrieved successfully',
+      data: comments,
     };
   }
 }

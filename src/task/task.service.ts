@@ -291,12 +291,11 @@ export class TaskService {
     return event.save();
   }
 
-  async addComment(
+  async addCommentAsOrganizer(
     eventId: string,
     taskId: string,
     dto: CreateCommentDto,
     userId: string,
-    userType: 'organizer' | 'provider',
   ): Promise<Comment> {
     const event = await this.eventModel.findOne({ eventId });
     if (!event)
@@ -305,19 +304,9 @@ export class TaskService {
     const task = event.tasks.find((t) => t.id === taskId);
     if (!task) throw new NotFoundException(`Task with id ${taskId} not found`);
 
-    // validacion para prov que este asignado a una tarea :V
-    if (
-      userType === 'provider' &&
-      task.associatedProviderId !== userId.toString()
-    ) {
-      throw new ForbiddenException(
-        'Provider cannot comment because they are not assigned to this task',
-      );
-    }
-
     const newComment: Comment = {
       idUser: userId,
-      userType,
+      userType: 'organizer',
       date: new Date(),
       description: dto.description,
     };
@@ -328,12 +317,12 @@ export class TaskService {
     return newComment;
   }
 
-  async getTaskById(
+  async addCommentAsProvider(
     eventId: string,
     taskId: string,
+    dto: CreateCommentDto,
     userId: string,
-    userType: 'organizer' | 'provider',
-  ): Promise<Task> {
+  ): Promise<Comment> {
     const event = await this.eventModel.findOne({ eventId });
     if (!event)
       throw new NotFoundException(`Event with id ${eventId} not found`);
@@ -341,21 +330,50 @@ export class TaskService {
     const task = event.tasks.find((t) => t.id === taskId);
     if (!task) throw new NotFoundException(`Task with id ${taskId} not found`);
 
-    // validacion para prov solo pueden ver tareas si estan asignados asignadas
+    if (task.associatedProviderId !== userId.toString()) {
+      throw new ForbiddenException(
+        'Provider cannot comment because they are not assigned to this task',
+      );
+    }
+
+    const newComment: Comment = {
+      idUser: userId,
+      userType: 'provider',
+      date: new Date(),
+      description: dto.description,
+    };
+
+    task.comments.push(newComment);
+    await event.save();
+
+    return newComment;
+  }
+
+  async getTaskComments(
+    eventId: string,
+    taskId: string,
+    userId: string,
+    userType: 'organizer' | 'provider',
+  ): Promise<Comment[]> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event)
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) throw new NotFoundException(`Task with id ${taskId} not found`);
+
     if (
       userType === 'provider' &&
       task.associatedProviderId !== userId.toString()
     ) {
       throw new ForbiddenException(
-        'Provider cannot view this task because they are not assigned to it',
+        'Provider cannot view comments of a task they are not assigned to',
       );
     }
 
-    // comentarios ordenados cronologicamente ovbiamente los mas viejos primero
-    task.comments.sort(
+    // Orden cronológico (más antiguos primero)
+    return task.comments.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
-
-    return task;
   }
 }
