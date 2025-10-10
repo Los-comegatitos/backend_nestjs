@@ -14,15 +14,17 @@ import { AddServiceDto } from './dto/event-service.dto';
 import { Quote, QuoteDocument } from 'src/quote/quote.document';
 import { User } from 'src/user/user.entity';
 import { In } from 'typeorm';
+import { ClientTypeService } from 'src/client_type/client_type.service';
 
 export class EventService {
   constructor(
     @InjectModel(Event.name) private readonly eventModel: Model<Event>,
     @InjectModel(Quote.name) private readonly quoteModel: Model<QuoteDocument>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>, // ✅ CORRECTO
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(EventType)
     private readonly eventTypeRepository: Repository<EventType>,
     private readonly catalogService: CatalogService,
+    private readonly clientTypeService: ClientTypeService,
   ) {}
 
   async create(
@@ -423,6 +425,95 @@ export class EventService {
           description: quote.service?.description,
         },
       };
+    });
+
+    return result;
+  }
+
+  // Reporte 1: promedio finalización de tareas
+  async getAverageTaskCompletionTime(organizerId: number): Promise<string> {
+    const organizerIdString = organizerId.toString();
+    const events = await this.eventModel
+      .find({
+        organizerUserId: organizerIdString,
+        'tasks.status': 'completed',
+      })
+      .exec();
+
+    let totalTime = 0;
+    let completedCount = 0;
+
+    for (const event of events) {
+      for (const task of event.tasks) {
+        if (
+          task.status === 'completed' &&
+          task.completionDate &&
+          task.creationDate
+        ) {
+          const diferencia =
+            new Date(task.completionDate).getTime() -
+            new Date(task.creationDate).getTime();
+          totalTime += diferencia;
+          completedCount++;
+        }
+      }
+    }
+
+    if (completedCount === 0) return 'No hay tareas completadas.';
+
+    const avgMs = totalTime / completedCount;
+    const avgHours = avgMs / (1000 * 60 * 60);
+    const days = Math.floor(avgHours / 24);
+    const hours = Math.round(avgHours % 24);
+
+    return `${days} días y ${hours} horas`;
+  }
+
+  // Reporte 2: clientes más frecuentes
+  async getClientTypeStats(
+    organizerId: number,
+  ): Promise<{ clientType: string; count: number }[]> {
+    const organizerIdString = organizerId.toString();
+
+    const events = await this.eventModel
+      .find({
+        organizerUserId: organizerIdString,
+      })
+      .exec();
+
+    const counts: Record<string, number> = {};
+
+    for (const event of events) {
+      const clientTypeId = event.client?.clientTypeId;
+      // (counts[clientTypeId] || 0) por si ya está en el obj o no
+      if (!clientTypeId) {
+        counts['sin_cliente'] = (counts['sin_cliente'] || 0) + 1;
+      } else {
+        counts[clientTypeId] = (counts[clientTypeId] || 0) + 1;
+      }
+    }
+
+    const clientTypeIds = Object.keys(counts).filter(
+      (id) => id !== 'sin_cliente',
+    );
+
+    const idToNameMap: Record<string, string> = {};
+
+    for (const id of clientTypeIds) {
+      try {
+        const type = await this.clientTypeService.findOne(Number(id));
+        idToNameMap[id] = type?.name;
+      } catch {
+        // por si acaso
+        idToNameMap[id] = 'Desconocido';
+      }
+    }
+    const result = Object.entries(counts).map(([key, count]) => {
+      let name: string;
+      if (key === 'sin_cliente') name = 'Sin cliente';
+      else name = idToNameMap[key] || 'Desconocido';
+
+      return { clientType: name, count };
     });
 
     return result;
