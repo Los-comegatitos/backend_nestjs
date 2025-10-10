@@ -9,33 +9,26 @@ import {
 
 export class CreateUserDto {
   @ApiProperty()
-  @IsNotEmpty({ message: 'The name cannot be empty' })
+  @IsNotEmpty({ message: 'Los nombres no puede estar vacío' })
   @IsString()
   firstName: string;
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'Last name cannot be empty' })
+  @IsNotEmpty({ message: 'Los apellidos no puede estar vacío' })
   @IsString()
   lastName: string;
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'User email cannot be empty' })
-  @IsEmail({}, { message: 'The email is not valid' })
+  @IsNotEmpty({ message: 'El email no puede estar vacío' })
+  @IsEmail({}, { message: 'El email no es válido' })
   @IsString()
   email: string;
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'Telephone cannot be empty' })
-  @IsString()
-  telephone: string;
-
-  @ApiProperty()
-  @IsNotEmpty({ message: 'Date of birth cannot be empty' })
-  birthDate: Date;
-
-  @ApiProperty()
-  @IsNotEmpty({ message: 'Password cannot be empty' })
-  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  @IsNotEmpty({ message: 'La contraseña no puede estar vacía' })
+  @MinLength(8, {
+    message: 'La contraseña tiene que tener al menos 8 caracteres',
+  })
   password: string;
 
   @ApiProperty()

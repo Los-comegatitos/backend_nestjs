@@ -14,34 +14,32 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { QuoteService } from './quote.service';
 import { QuoteDto } from './quote.dto';
-import { Request } from 'express';
+import { Request as ExpressRequest } from 'express';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('quote')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class QuoteController {
   constructor(private readonly quoteService: QuoteService) {}
 
-  /*@Get('received')
+  @Get('received')
   @Roles(Role.Organizer)
   async getReceivedQuotes(
-    @Request() req: { user: { userId: number; role: Role; email: string } },
+    @Req() req: ExpressRequest,
+    @Query('eventId') eventId?: string,
   ) {
-    const organizerId = req.user.userId;
-    return this.quoteService.getPendingQuotesByOrganizer(organizerId);
-  }
-  */
+    const user = req.user as { userId: number; role: Role; email: string };
+    const organizerId = user.userId;
 
-  @Get('received/:eventId')
-  @Roles(Role.Organizer)
-  async getReceivedQuotesByEvent(
-    @Req() req: { user: { userId: number; role: Role; email: string } },
-    @Param('eventId') eventId: string,
-  ) {
-    const organizerId = req.user.userId;
-    return this.quoteService.getPendingQuotesByEvent(
-      organizerId,
-      Number(eventId),
-    );
+    if (eventId) {
+      return this.quoteService.getPendingQuotesByEvent(
+        organizerId,
+        Number(eventId),
+      );
+    }
+
+    return this.quoteService.getPendingQuotesByOrganizer(organizerId);
   }
 
   @Get('sent/:providerId')
@@ -58,12 +56,20 @@ export class QuoteController {
 
   @Post('send')
   @Roles(Role.Provider)
-  async sendQuotes(@Req() data: Request, @Body() createQuote: QuoteDto) {
-    const { userId } = data.user as {
-      userId: number;
-      role: Role;
-      email: string;
-    };
-    return this.quoteService.sendQuotes(createQuote, userId);
+  async sendQuotes(@Req() req: ExpressRequest, @Body() createQuote: QuoteDto) {
+    const user = req.user as { userId: number; role: Role; email: string };
+    return this.quoteService.sendQuotes(createQuote, user.userId);
+  }
+
+  @Post(':quoteId/accept')
+  @Roles(Role.Organizer)
+  async acceptQuote(@Param('quoteId') quoteId: string) {
+    return this.quoteService.acceptQuote(Number(quoteId));
+  }
+
+  @Post(':quoteId/reject')
+  @Roles(Role.Organizer)
+  async rejectQuote(@Param('quoteId') quoteId: string) {
+    return this.quoteService.rejectQuote(Number(quoteId));
   }
 }

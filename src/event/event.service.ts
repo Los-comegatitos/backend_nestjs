@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event, EventDocument } from './event.document';
@@ -15,11 +11,15 @@ import { CatalogService } from 'src/catalog/catalog.service';
 import { FilteredEvent } from './event.interfaces';
 import { Service } from 'src/service/service.document';
 import { AddServiceDto } from './dto/event-service.dto';
+import { Quote, QuoteDocument } from 'src/quote/quote.document';
+import { User } from 'src/user/user.entity';
+import { In } from 'typeorm';
 
-@Injectable()
 export class EventService {
   constructor(
     @InjectModel(Event.name) private readonly eventModel: Model<Event>,
+    @InjectModel(Quote.name) private readonly quoteModel: Model<QuoteDocument>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>, // ✅ CORRECTO
     @InjectRepository(EventType)
     private readonly eventTypeRepository: Repository<EventType>,
     private readonly catalogService: CatalogService,
@@ -48,7 +48,7 @@ export class EventService {
       .findOne()
       .sort({ eventId: -1 })
       .exec();
-    const nextEventId = lastEvent ? lastEvent.eventId + 1 : 1;
+    const nextEventId = lastEvent ? `${parseInt(lastEvent.eventId) + 1}` : '1';
 
     const createdEvent = new this.eventModel({
       ...createEventDto,
@@ -136,36 +136,98 @@ export class EventService {
     return event;
   }
 
+  // async findEventsByServiceTypes(
+  //   serviceTypeIds: string[],
+  // ): Promise<FilteredEvent[]> {
+  //   console.log('serviceTypeIds', serviceTypeIds);
+
+  //   const events: FilteredEvent[] = (await this.eventModel
+  //     .aggregate([
+  //       {
+  //         $project: {
+  //           name: 1,
+  //           description: 1,
+  //           eventDate: 1,
+  //           services: {
+  //             $filter: {
+  //               input: '$services',
+  //               as: 'service',
+  //               cond: {
+  //                 $in: ['$$service.serviceTypeId', serviceTypeIds],
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //       {
+  //         $match: {
+  //           'services.0': { $exists: true },
+  //         },
+  //       },
+  //     ])
+  //     .exec()) as FilteredEvent[];
+
+  //   console.log('events', JSON.stringify(events, null, 2));
+
+  //   return events;
+  // }
+
+  async deleteEvent(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    const event = await this.eventModel.findOneAndDelete({
+      eventId: eventId,
+      organizerUserId: organizerIdString,
+    });
+
+    if (!event) {
+      throw new NotFoundException(
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
+      );
+    }
+
+    return event;
+  }
+
   async findEventsByServiceTypes(
     serviceTypeIds: string[],
   ): Promise<FilteredEvent[]> {
     console.log('serviceTypeIds', serviceTypeIds);
     const events: FilteredEvent[] = (await this.eventModel
       .aggregate([
-        // match para eventos cuyos services.serviceTypeId hagan mach con alguno de los serviceTypeIds
         {
-          $match: {
-            'services.serviceTypeId': { $in: serviceTypeIds },
-          },
-        }, // devolver solo estos campos deseados
-        {
-          $project: {
-            name: 1,
-            description: 1,
-            eventDate: 1,
-            // Filtrar para solo mostrar services con el mismo serviceTypeId
+          $addFields: {
             services: {
               $filter: {
                 input: '$services',
                 as: 'service',
-                cond: { $in: ['$$service.serviceTypeId', serviceTypeIds] },
+                cond: {
+                  $and: [
+                    { $in: ['$$service.serviceTypeId', serviceTypeIds] },
+                    { $gte: ['$$service.dueDate', new Date()] },
+                    { $eq: ['$$service.quote', null] },
+                  ],
+                },
               },
             },
           },
         },
+        {
+          $match: {
+            $expr: { $gt: [{ $size: '$services' }, 0] },
+          },
+        },
+        {
+          $project: {
+            eventId: 1,
+            name: 1,
+            description: 1,
+            eventDate: 1,
+            services: 1,
+          },
+        },
       ])
       .exec()) as FilteredEvent[];
-    // as FilteredEvent porque es lo que describí en el project
 
     console.log('events', events);
 
@@ -182,6 +244,16 @@ export class EventService {
 
   async findById(eventId: string): Promise<EventDocument> {
     const event = await this.eventModel.findById(eventId);
+    if (!event) {
+      throw new NotFoundException(
+        `El evento con el id ${eventId} no fue encontrado.`,
+      );
+    }
+    return event;
+  }
+
+  async findByStringId(eventId: string): Promise<EventDocument> {
+    const event = await this.eventModel.findOne({ eventId: eventId }).exec();
     if (!event) {
       throw new NotFoundException(
         `El evento con el id ${eventId} no fue encontrado.`,
@@ -299,7 +371,7 @@ export class EventService {
       providerId: string;
     },
   ): Promise<EventDocument> {
-    const event = await this.findById(eventId);
+    const event = await this.findByStringId(eventId);
 
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {
@@ -314,5 +386,45 @@ export class EventService {
 
     service.quote = quoteDto;
     return event.save();
+  }
+
+  // listar proveedores con cotizaciones aprobadas
+  async getAcceptedProvidersByEvent(eventId: number) {
+    //filtrar pro cotización aceptada
+    const quotes = await this.quoteModel
+      .find({ eventId, status: 'accepted' })
+      .lean()
+      .exec();
+
+    if (!quotes.length) {
+      return [];
+    }
+
+    //vector de ids únicos de proveedores
+    const providerIds = [...new Set(quotes.map((q) => q.providerId))];
+
+    //buscar los datos de los proveedores en User
+    const providers = await this.userRepository.find({
+      where: { id: In(providerIds) },
+      select: ['id', 'firstName', 'lastName'],
+    });
+
+    //construir respuesta combinando Quote + User
+    const result = quotes.map((quote) => {
+      const provider = providers.find((p) => p.id === quote.providerId);
+      return {
+        providerId: quote.providerId,
+        providerName: provider
+          ? `${provider.firstName} ${provider.lastName}`
+          : `Proveedor #${quote.providerId}`,
+        service: {
+          serviceTypeId: quote.service?.serviceTypeId,
+          name: quote.service?.name,
+          description: quote.service?.description,
+        },
+      };
+    });
+
+    return result;
   }
 }

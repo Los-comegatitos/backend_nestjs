@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { TaskController } from './task.controller';
-import { Task } from './task.document';
+import { EventModule } from 'src/event/event.module';
 
 @Module({
-  providers: [TaskService, Task],
+  imports: [EventModule],
   controllers: [TaskController],
+  providers: [TaskService],
 })
 export class TaskModule {}

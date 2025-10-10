@@ -1,52 +1,64 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-// attachments anidados
 @Schema()
-class Attachment {
+export class Attachment {
   @Prop()
   id: string;
+
   @Prop()
   fileName: string;
 }
-const AttachmentSchema = SchemaFactory.createForClass(Attachment);
+export const AttachmentSchema = SchemaFactory.createForClass(Attachment);
 
-//comments anidados
 @Schema()
-class Comment {
+export class Comment {
   @Prop()
   idUser: string;
+
   @Prop()
   userType: string;
+
   @Prop()
   date: Date;
+
   @Prop()
   description: string;
 }
-const CommentSchema = SchemaFactory.createForClass(Comment);
+export const CommentSchema = SchemaFactory.createForClass(Comment);
 
 @Schema()
 export class Task {
   @Prop()
   id: string;
+
   @Prop()
   name: string;
+
   @Prop()
   description: string;
+
   @Prop()
   creationDate: Date;
-  @Prop({ type: Date })
+
+  @Prop({ type: Date, default: null })
   completionDate: Date | null;
+
   @Prop()
   reminderDate: Date;
+
   @Prop()
   dueDate: Date;
+
   @Prop()
   status: 'pending' | 'completed';
+
   @Prop([AttachmentSchema])
   attachments: Attachment[];
+
   @Prop([CommentSchema])
   comments: Comment[];
-  @Prop({ type: String })
+
+  @Prop({ type: String, default: null })
   associatedProviderId: string | null;
 }
 
