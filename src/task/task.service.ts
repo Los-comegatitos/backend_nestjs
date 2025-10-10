@@ -371,9 +371,32 @@ export class TaskService {
       );
     }
 
-    // Orden cronológico (más antiguos primero)
+    // orden cronologico (mas antiguos primero) obviamente :v
     return task.comments.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
+  }
+
+  async getTasksForProvider(
+    eventId: string,
+    providerId: string,
+  ): Promise<Task[]> {
+    const event = await this.eventService.findByStringId(eventId);
+    if (!event) {
+      throw new NotFoundException(`Evento con id ${eventId} no existe`);
+    }
+
+    const tasksForProvider = event.tasks.filter(
+      (t) => t.associatedProviderId === providerId,
+    );
+    
+
+    if (!tasksForProvider.length) {
+      throw new ForbiddenException(
+        'No tienes tareas asignadas en este evento o no estás autorizado a verlas',
+      );
+    }
+
+    return tasksForProvider;
   }
 }
