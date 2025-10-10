@@ -21,6 +21,7 @@ import { AuthGuard } from './auth/auth.guard';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NotificationModule } from './notification/notification.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -69,6 +70,24 @@ import { NotificationModule } from './notification/notification.module';
         uri: configService.get<string>('MONGODB_URL'),
       }),
       inject: [ConfigService],
+    }),
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: 'smtp.office365.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: configService.get<string>('OUTLOOK_EMAIL'),
+            pass: configService.get<string>('APP_PASSWORD'),
+          },
+        },
+        defaults: {
+          from: `"El Gestionainador" <${configService.get<string>('OUTLOOK_EMAIL')}>`,
+        },
+      }),
     }),
     NotificationModule,
   ],
