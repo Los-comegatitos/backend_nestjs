@@ -383,7 +383,7 @@ export class TaskService {
   ): Promise<Task[]> {
     const event = await this.eventService.findByStringId(eventId);
     if (!event) {
-      throw new NotFoundException(`Evento con id ${eventId} no existe`);
+      throw new NotFoundException(`Event with id ${eventId} does not exist`);
     }
 
     const tasksForProvider = event.tasks.filter(
@@ -392,7 +392,7 @@ export class TaskService {
 
     if (!tasksForProvider.length) {
       throw new ForbiddenException(
-        'No tienes tareas asignadas en este evento o no estás autorizado a verlas',
+        'You have no tasks assigned in this event or you are not authorized to view them.',
       );
     }
 
