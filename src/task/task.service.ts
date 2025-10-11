@@ -197,7 +197,7 @@ export class TaskService {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
 
-    const task = event.tasks.find((t) => t.name === taskId);
+    const task = event.tasks.find((t) => t.id === taskId);
     if (!task) {
       throw new NotFoundException(`Tarea con nombre ${taskId} no encontrada`);
     }
@@ -225,7 +225,7 @@ export class TaskService {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
 
-    const task = event.tasks.find((t) => t.name === taskId);
+    const task = event.tasks.find((t) => t.id === taskId);
     if (!task) {
       throw new NotFoundException(`Tarea con nombre ${taskId} no encontrada`);
     }
