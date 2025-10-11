@@ -389,7 +389,6 @@ export class TaskService {
     const tasksForProvider = event.tasks.filter(
       (t) => t.associatedProviderId === providerId,
     );
-    
 
     if (!tasksForProvider.length) {
       throw new ForbiddenException(
