@@ -172,7 +172,7 @@ export class TaskController {
     };
   }
   @Post(':taskId/file')
-  @Roles(Role.Organizer)
+  @Roles(Role.Organizer, Role.Provider)
   @ApiOperation({ summary: 'Upload file for a task' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -205,7 +205,7 @@ export class TaskController {
   }
 
   @Get(':taskId/file/:fileId')
-  @Roles(Role.Organizer)
+  @Roles(Role.Organizer, Role.Provider)
   @ApiOperation({ summary: 'download file for a task' })
   @ApiProduces('application/octet-stream')
   @ApiResponse({
