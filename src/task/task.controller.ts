@@ -172,7 +172,7 @@ export class TaskController {
     };
   }
   @Post(':taskId/file')
-  @Roles(Role.Organizer)
+  @Roles(Role.Organizer, Role.Provider)
   @ApiOperation({ summary: 'Upload file for a task' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -205,7 +205,7 @@ export class TaskController {
   }
 
   @Get(':taskId/file/:fileId')
-  @Roles(Role.Organizer)
+  @Roles(Role.Organizer, Role.Provider)
   @ApiOperation({ summary: 'download file for a task' })
   @ApiProduces('application/octet-stream')
   @ApiResponse({
@@ -321,6 +321,26 @@ export class TaskController {
       message: '000',
       description: 'Comments retrieved successfully',
       data: comments,
+    };
+  }
+
+  @Get('provider')
+  @Roles(Role.Provider)
+  @ApiOperation({ summary: 'List tasks assigned to a provider in an event' })
+  async getTasksForProvider(
+    @Param('eventId') eventId: string,
+    @Req() req: ExpressRequest,
+  ) {
+    const { userId } = req.user as { userId: number; role: Role };
+    const tasks = await this.taskService.getTasksForProvider(
+      eventId,
+      userId.toString(),
+    );
+
+    return {
+      message: '000',
+      description: 'Tasks retrieved successfully for provider',
+      data: tasks,
     };
   }
 }
