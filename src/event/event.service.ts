@@ -472,7 +472,7 @@ export class EventService {
   // Reporte 2: clientes más frecuentes
   async getClientTypeStats(
     organizerId: number,
-  ): Promise<{ clientType: string; count: number }[]> {
+  ): Promise<{ type: string; count: number }[]> {
     const organizerIdString = organizerId.toString();
 
     const events = await this.eventModel
@@ -513,9 +513,45 @@ export class EventService {
       if (key === 'sin_cliente') name = 'Sin cliente';
       else name = idToNameMap[key] || 'Desconocido';
 
-      return { clientType: name, count };
+      return { type: name, count };
     });
 
     return result;
+  }
+
+  // reporte pie chart
+  async getMostFrequentEventTypes(): Promise<
+    { type: string; count: number }[]
+  > {
+    const events = await this.eventModel.find();
+
+    const counts: Record<string, number> = {};
+
+    for (const event of events) {
+      const type = event.eventTypeId || 'Sin tipo';
+      counts[type] = (counts[type] || 0) + 1;
+    }
+
+    // llenar con nombres en vez de id etc
+
+    const ids = Object.keys(counts).filter((id) => id !== 'sin_tipo');
+
+    const idToName: Record<string, string> = {};
+
+    for (const id of ids) {
+      try {
+        const eventType = await this.eventTypeRepository.findOne({
+          where: { id: Number(id) },
+        });
+        idToName[id] = eventType?.name || `Tipo ${id}`;
+      } catch {
+        idToName[id] = 'Desconocido';
+      }
+    }
+
+    return Object.entries(counts).map(([id, count]) => ({
+      type: id === 'sin_tipo' ? 'Sin tipo' : idToName[id] || 'Desconocido',
+      count,
+    }));
   }
 }

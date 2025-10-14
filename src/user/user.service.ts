@@ -188,4 +188,10 @@ export class UserService {
     const { password: _password, ...info } = user;
     return info;
   }
+
+  // reporte
+  async getRegisteredUsersCount(): Promise<string> {
+    const count = await this.userRepo.count();
+    return `${count} usuarios registrados.`;
+  }
 }

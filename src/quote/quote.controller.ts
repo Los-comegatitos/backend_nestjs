@@ -14,6 +14,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { QuoteService } from './quote.service';
 import { QuoteDto } from './quote.dto';
+// no entiendo por qué hicieron la importación pero bueno aja, seguiré la estructura que hicieron en este controller xd
 import { Request as ExpressRequest } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
@@ -22,6 +23,28 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class QuoteController {
   constructor(private readonly quoteService: QuoteService) {}
+
+  @Get('accepted-quotes-percentage')
+  @Roles(Role.Provider)
+  async getAcceptedQuotesPercentage(@Req() datos: ExpressRequest) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    return await this.quoteService.getAcceptedQuotesPercentage(userId);
+  }
+
+  @Get('service-type-stats')
+  @Roles(Role.Provider)
+  async getServiceTypeStats(@Req() datos: ExpressRequest) {
+    const { userId } = datos.user as {
+      userId: number;
+      email: string;
+      role: string;
+    };
+    return await this.quoteService.getServiceTypeStats(userId);
+  }
 
   @Get('received')
   @Roles(Role.Organizer)

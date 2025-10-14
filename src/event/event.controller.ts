@@ -99,6 +99,12 @@ export class EventController {
     return await this.eventService.getClientTypeStats(userId);
   }
 
+  @Get('event-type-stats')
+  @Roles(Role.Admin)
+  async getMostFrequentEventTypes() {
+    return await this.eventService.getMostFrequentEventTypes();
+  }
+
   @Put(':eventId')
   @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Modificar un evento' })
