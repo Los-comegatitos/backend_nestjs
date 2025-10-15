@@ -13,6 +13,9 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection, Model } from 'mongoose';
 import { Readable } from 'stream';
 import { EventDocument } from 'src/event/event.document';
+import { ForbiddenException } from '@nestjs/common';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { Comment } from './task.document';
 
 @Injectable()
 export class TaskService {
@@ -194,7 +197,7 @@ export class TaskService {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
 
-    const task = event.tasks.find((t) => t.name === taskId);
+    const task = event.tasks.find((t) => t.id === taskId);
     if (!task) {
       throw new NotFoundException(`Tarea con nombre ${taskId} no encontrada`);
     }
@@ -222,7 +225,7 @@ export class TaskService {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
 
-    const task = event.tasks.find((t) => t.name === taskId);
+    const task = event.tasks.find((t) => t.id === taskId);
     if (!task) {
       throw new NotFoundException(`Tarea con nombre ${taskId} no encontrada`);
     }
@@ -286,5 +289,113 @@ export class TaskService {
 
     task.associatedProviderId = null;
     return event.save();
+  }
+
+  async addCommentAsOrganizer(
+    eventId: string,
+    taskId: string,
+    dto: CreateCommentDto,
+    userId: string,
+  ): Promise<Comment> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event)
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) throw new NotFoundException(`Task with id ${taskId} not found`);
+
+    const newComment: Comment = {
+      idUser: userId,
+      userType: 'organizer',
+      date: new Date(),
+      description: dto.description,
+    };
+
+    task.comments.push(newComment);
+    await event.save();
+
+    return newComment;
+  }
+
+  async addCommentAsProvider(
+    eventId: string,
+    taskId: string,
+    dto: CreateCommentDto,
+    userId: string,
+  ): Promise<Comment> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event)
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) throw new NotFoundException(`Task with id ${taskId} not found`);
+
+    if (task.associatedProviderId !== userId.toString()) {
+      throw new ForbiddenException(
+        'Provider cannot comment because they are not assigned to this task',
+      );
+    }
+
+    const newComment: Comment = {
+      idUser: userId,
+      userType: 'provider',
+      date: new Date(),
+      description: dto.description,
+    };
+
+    task.comments.push(newComment);
+    await event.save();
+
+    return newComment;
+  }
+
+  async getTaskComments(
+    eventId: string,
+    taskId: string,
+    userId: string,
+    userType: 'organizer' | 'provider',
+  ): Promise<Comment[]> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event)
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+
+    const task = event.tasks.find((t) => t.id === taskId);
+    if (!task) throw new NotFoundException(`Task with id ${taskId} not found`);
+
+    if (
+      userType === 'provider' &&
+      task.associatedProviderId !== userId.toString()
+    ) {
+      throw new ForbiddenException(
+        'Provider cannot view comments of a task they are not assigned to',
+      );
+    }
+
+    // orden cronologico (mas antiguos primero) obviamente :v
+    return task.comments.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+  }
+
+  async getTasksForProvider(
+    eventId: string,
+    providerId: string,
+  ): Promise<Task[]> {
+    const event = await this.eventService.findByStringId(eventId);
+    if (!event) {
+      throw new NotFoundException(`Event with id ${eventId} does not exist`);
+    }
+
+    const tasksForProvider = event.tasks.filter(
+      (t) => t.associatedProviderId === providerId,
+    );
+
+    if (!tasksForProvider.length) {
+      throw new ForbiddenException(
+        'You have no tasks assigned in this event or you are not authorized to view them.',
+      );
+    }
+
+    return tasksForProvider;
   }
 }

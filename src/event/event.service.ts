@@ -373,7 +373,7 @@ export class EventService {
       providerId: string;
     },
   ): Promise<EventDocument> {
-    const event = await this.findById(eventId);
+    const event = await this.findByStringId(eventId);
 
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {
