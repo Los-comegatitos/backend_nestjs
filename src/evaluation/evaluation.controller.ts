@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -8,13 +8,19 @@ import {
 } from '@nestjs/swagger';
 import { EvaluationService } from './evaluation.service';
 import { CreateEvaluationDto } from './dto/create-evaluation.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { Role } from 'src/auth/roles.enum';
 
 @ApiTags('Evaluaciones')
 @Controller('evaluation')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class EvaluationController {
   constructor(private readonly evaluationService: EvaluationService) {}
 
   @Post()
+  @Roles(Role.Organizer)
   @ApiOperation({ summary: 'Calificar un proveedor' })
   @ApiBody({ type: CreateEvaluationDto })
   @ApiResponse({
