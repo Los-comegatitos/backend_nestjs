@@ -326,16 +326,13 @@ export class TaskController {
 
   @Get('provider')
   @Roles(Role.Provider)
-  @ApiOperation({ summary: 'List tasks assigned to a provider in an event' })
-  async getTasksForProvider(
-    @Param('eventId') eventId: string,
-    @Req() req: ExpressRequest,
-  ) {
+  @ApiOperation({
+    summary: 'List tasks assigned to a provider across all events',
+  })
+  async getTasksForProvider(@Req() req: ExpressRequest) {
     const { userId } = req.user as { userId: number; role: Role };
-    const tasks = await this.taskService.getTasksForProvider(
-      eventId,
-      userId.toString(),
-    );
+
+    const tasks = await this.taskService.getTasksForProvider(userId.toString());
 
     return {
       message: '000',
