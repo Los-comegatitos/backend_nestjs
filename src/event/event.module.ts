@@ -9,6 +9,7 @@ import { CatalogModule } from 'src/catalog/catalog.module';
 import { QuoteModule } from 'src/quote/quote.module';
 import { Quote, QuoteShema } from 'src/quote/quote.document';
 import { User } from 'src/user/user.entity';
+import { ClientTypeModule } from 'src/client_type/client_type.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { User } from 'src/user/user.entity';
     TypeOrmModule.forFeature([EventType]),
     TypeOrmModule.forFeature([EventType, User]),
     CatalogModule,
+    ClientTypeModule,
     forwardRef(() => QuoteModule),
   ],
   providers: [EventService],

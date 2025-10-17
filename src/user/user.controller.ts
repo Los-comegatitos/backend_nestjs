@@ -45,6 +45,12 @@ export class UserController {
     return await this.userService.create(dto);
   }
 
+  @Get('/registered-users-count')
+  @Roles(Role.Admin)
+  async getRegisteredUsersCount() {
+    return await this.userService.getRegisteredUsersCount();
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Post('create-admin')
