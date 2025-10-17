@@ -16,6 +16,7 @@ import { QuoteService } from './quote.service';
 import { QuoteDto } from './quote.dto';
 import { Request as ExpressRequest } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { UserPayload } from 'src/auth/user-payload.type';
 
 @ApiBearerAuth()
 @Controller('quote')
@@ -57,8 +58,8 @@ export class QuoteController {
   @Post('send')
   @Roles(Role.Provider)
   async sendQuotes(@Req() req: ExpressRequest, @Body() createQuote: QuoteDto) {
-    const user = req.user as { userId: number; role: Role; email: string };
-    return this.quoteService.sendQuotes(createQuote, user.userId);
+    const user = req.user as UserPayload;
+    return this.quoteService.sendQuotes(createQuote, user.userId, user.email);
   }
 
   @Post(':quoteId/accept')

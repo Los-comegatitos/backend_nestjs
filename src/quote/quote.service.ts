@@ -5,6 +5,9 @@ import { Quote, QuoteDocument, Service } from './quote.document';
 import { QuoteDto } from './quote.dto';
 import { ServiceTypeService } from 'src/service_type/service_type.service';
 import { EventService } from 'src/event/event.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { Notification_type } from 'src/notification/notification.enum';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class QuoteService {
@@ -13,6 +16,8 @@ export class QuoteService {
     private readonly quoteModel: Model<QuoteDocument>,
     private readonly serviceTypeService: ServiceTypeService,
     private readonly eventService: EventService,
+    private readonly notificationService: NotificationService,
+    private readonly userService: UserService,
   ) {}
 
   async findAmount(): Promise<number> {
@@ -128,7 +133,7 @@ export class QuoteService {
     return grouped;
   }
 
-  async sendQuotes(body: QuoteDto, userId: number) {
+  async sendQuotes(body: QuoteDto, userId: number, email: string) {
     const serviceTypeIdNum = parseInt(body.service.serviceTypeId, 10);
     if (isNaN(serviceTypeIdNum)) return; // lo que hare sera lo siguinete omitir quotes invalidas
 
@@ -152,7 +157,23 @@ export class QuoteService {
       },
     });
 
+    const organizer = await this.userService.findById(
+      parseInt(event.organizerUserId),
+    );
+
     await newQuote.save();
+
+    await this.notificationService.sendEmail({
+      emails: [email],
+      route: `"${body.service.name}" del evento "${event.name}"`,
+      type: Notification_type.quote_sent,
+    });
+
+    await this.notificationService.sendEmail({
+      emails: [organizer.email],
+      route: `servicio "${newQuote.service.name}" en el evento "${newQuote.event.name}"`,
+      type: Notification_type.quote_received,
+    });
   }
 
   async getSentQuotesByProvider(providerId: number, status?: string) {
@@ -224,6 +245,17 @@ export class QuoteService {
       quote.toServiceId,
       newInfo,
     );
+
+    const provider = await this.userService.findById(
+      parseInt(newInfo.providerId),
+    );
+
+    await this.notificationService.sendEmail({
+      emails: [provider.email],
+      route: `"${quote.service.name}" del evento "${quote.event.name}"`,
+      type: Notification_type.quote_accepted,
+    });
+
     return quote;
   }
 

@@ -18,6 +18,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 import { Request } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { UserPayload } from 'src/auth/user-payload.type';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 // @UseGuards(new JwtAuthGuard())
@@ -36,11 +37,7 @@ export class CatalogController {
   @Roles(Role.Provider)
   @Get()
   async findOneByProviderId(@Req() datos: Request) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.catalogService.findCatalogByProviderId(userId);
   }
 
@@ -50,22 +47,14 @@ export class CatalogController {
     @Req() datos: Request,
     @Body() dto: UpdateCatalogDto,
   ) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.catalogService.updateDescription(userId, dto);
   }
 
   @Roles(Role.Provider)
   @Post('services')
   async addService(@Req() datos: Request, @Body() dto: AddCatalogServiceDto) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.catalogService.addService(userId, dto);
   }
 
@@ -75,11 +64,7 @@ export class CatalogController {
     @Req() datos: Request,
     @Param('serviceName') serviceName: string,
   ) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.catalogService.removeService(userId, serviceName);
   }
 
@@ -90,11 +75,7 @@ export class CatalogController {
     @Param('serviceName') serviceName: string,
     @Body() dto: Partial<AddCatalogServiceDto>,
   ) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.catalogService.updateService(userId, serviceName, dto);
   }
 }

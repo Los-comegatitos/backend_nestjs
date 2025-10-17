@@ -14,6 +14,9 @@ import { AddServiceDto } from './dto/event-service.dto';
 import { Quote, QuoteDocument } from 'src/quote/quote.document';
 import { User } from 'src/user/user.entity';
 import { In } from 'typeorm';
+import { UserService } from 'src/user/user.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { Notification_type } from 'src/notification/notification.enum';
 
 export class EventService {
   constructor(
@@ -23,6 +26,8 @@ export class EventService {
     @InjectRepository(EventType)
     private readonly eventTypeRepository: Repository<EventType>,
     private readonly catalogService: CatalogService,
+    private readonly userService: UserService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(
@@ -115,6 +120,25 @@ export class EventService {
       );
     }
 
+    const providers = await this.getAcceptedProvidersByEvent(eventId);
+
+    const users = [...new Set(providers.map((e) => e.providerId))];
+
+    if (users.length != 0) {
+      const emails = await Promise.all(
+        users.map(async (id) => {
+          const info = await this.userService.findById(id);
+          return info.email;
+        }),
+      );
+
+      await this.notificationService.sendEmail({
+        emails: emails,
+        type: Notification_type.event_finished,
+        route: event.name,
+      });
+    }
+
     return event;
   }
 
@@ -131,6 +155,25 @@ export class EventService {
       throw new NotFoundException(
         `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
       );
+    }
+
+    const providers = await this.getAcceptedProvidersByEvent(eventId);
+
+    const users = [...new Set(providers.map((e) => e.providerId))];
+
+    if (users.length != 0) {
+      const emails = await Promise.all(
+        users.map(async (id) => {
+          const info = await this.userService.findById(id);
+          return info.email;
+        }),
+      );
+
+      await this.notificationService.sendEmail({
+        emails: emails,
+        type: Notification_type.event_cancelled,
+        route: event.name,
+      });
     }
 
     return event;

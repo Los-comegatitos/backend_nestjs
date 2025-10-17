@@ -9,6 +9,8 @@ import { CatalogModule } from 'src/catalog/catalog.module';
 import { QuoteModule } from 'src/quote/quote.module';
 import { Quote, QuoteShema } from 'src/quote/quote.document';
 import { User } from 'src/user/user.entity';
+import { NotificationModule } from 'src/notification/notification.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { User } from 'src/user/user.entity';
     TypeOrmModule.forFeature([EventType, User]),
     CatalogModule,
     forwardRef(() => QuoteModule),
+    NotificationModule,
+    UserModule,
   ],
   providers: [EventService],
   controllers: [EventController],
