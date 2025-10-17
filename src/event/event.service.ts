@@ -236,12 +236,78 @@ export class EventService {
     return events;
   }
 
+  async findEventsByServiceTypesAndProvider(
+    serviceTypeIds: string[],
+    providerId?: string,
+  ): Promise<FilteredEvent[]> {
+    console.log(
+      'serviceTypeIds',
+      serviceTypeIds,
+      'providerId',
+      providerId || 'none',
+    );
+
+    const events: FilteredEvent[] = (await this.eventModel
+      .aggregate([
+        {
+          $addFields: {
+            services: {
+              $filter: {
+                input: '$services',
+                as: 'service',
+                cond: {
+                  $and: [
+                    { $in: ['$$service.serviceTypeId', serviceTypeIds] },
+                    { $gte: ['$$service.dueDate', new Date()] },
+                    ...(providerId
+                      ? [
+                          {
+                            $or: [
+                              { $eq: ['$$service.quote', null] },
+                              {
+                                $eq: ['$$service.quote.providerId', providerId],
+                              },
+                            ],
+                          },
+                        ]
+                      : [{ $eq: ['$$service.quote', null] }]),
+                  ],
+                },
+              },
+            },
+          },
+        },
+        {
+          $match: {
+            $expr: { $gt: [{ $size: '$services' }, 0] },
+          },
+        },
+        {
+          $project: {
+            eventId: 1,
+            name: 1,
+            description: 1,
+            eventDate: 1,
+            services: 1,
+          },
+        },
+      ])
+      .exec()) as FilteredEvent[];
+
+    console.log('events', events);
+    return events;
+  }
+
   async findEventsForProvider(providerId: number): Promise<FilteredEvent[]> {
     const providerIdString = providerId.toString();
     const serviceTypesId: string[] =
       await this.catalogService.listUsedServiceTypesOnlyId(providerIdString);
 
-    return await this.findEventsByServiceTypes(serviceTypesId);
+    //return await this.findEventsByServiceTypes(serviceTypesId);
+    return await this.findEventsByServiceTypesAndProvider(
+      serviceTypesId,
+      providerIdString,
+    );
   }
 
   async findById(eventId: string): Promise<EventDocument> {
