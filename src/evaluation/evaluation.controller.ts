@@ -21,7 +21,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 
-@ApiTags('Evaluaciones')
+@ApiTags('Evaluations')
 @Controller('events')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class EvaluationController {
