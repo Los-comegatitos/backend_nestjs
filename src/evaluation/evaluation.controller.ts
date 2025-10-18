@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  UseGuards,
+  Patch,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -13,15 +21,17 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
 
-@ApiTags('Evaluaciones')
-@Controller('evaluation')
+@ApiTags('Evaluations')
+@Controller('events')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class EvaluationController {
   constructor(private readonly evaluationService: EvaluationService) {}
 
-  @Post()
+  @Post(':eventId/providers/:providerId/evaluation')
   @Roles(Role.Organizer)
-  @ApiOperation({ summary: 'Calificar un proveedor' })
+  @ApiOperation({ summary: 'Calificar un proveedor de un evento finalizado' })
+  @ApiParam({ name: 'eventId', example: '2111111112112' })
+  @ApiParam({ name: 'providerId', example: '83' })
   @ApiBody({ type: CreateEvaluationDto })
   @ApiResponse({
     status: 201,
@@ -39,11 +49,19 @@ export class EvaluationController {
     status: 409,
     description: 'Ya se calificó al proveedor en este evento',
   })
-  async create(@Body() dto: CreateEvaluationDto) {
-    return this.evaluationService.create(dto);
+  async create(
+    @Param('eventId') eventId: string,
+    @Param('providerId') providerId: string,
+    @Body() dto: CreateEvaluationDto,
+  ) {
+    return this.evaluationService.create({
+      ...dto,
+      eventId,
+      providerId,
+    });
   }
 
-  @Get('average/:providerId')
+  @Get('providers/:providerId/average')
   @ApiOperation({
     summary: 'Obtener el promedio de calificaciones de un proveedor',
   })
@@ -58,5 +76,35 @@ export class EvaluationController {
   async getProviderAverage(@Param('providerId') providerId: string) {
     const average = await this.evaluationService.getProviderAverage(providerId);
     return { providerId, average };
+  }
+
+  @Patch(':eventId/providers/:providerId/evaluation')
+  @Roles(Role.Organizer)
+  async updateEvaluation(
+    @Param('eventId') eventId: string,
+    @Param('providerId') providerId: string,
+    @Body('organizerUserId') organizerUserId: string,
+    @Body('score') score: number,
+  ) {
+    const evaluation = await this.evaluationService.updateEvaluation(
+      eventId,
+      providerId,
+      organizerUserId,
+      score,
+    );
+    return evaluation;
+  }
+
+  @Get(':eventId/providers/:providerId/evaluation')
+  async getEvaluation(
+    @Param('eventId') eventId: string,
+    @Param('providerId') providerId: string,
+  ) {
+    const evaluation = await this.evaluationService.getEvaluation(
+      eventId,
+      providerId,
+    );
+    if (!evaluation) return { providerId, score: 0 };
+    return evaluation;
   }
 }
