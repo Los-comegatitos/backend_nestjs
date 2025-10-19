@@ -102,7 +102,7 @@ export class NotificationService {
   async getEarlyNotifications(email: string) {
     try {
       const notifications = await this.notificationModel
-        .find({ toUserEmail: email, status: 'pending' })
+        .find({ toUserEmail: email, status: 'unseen' })
         .sort({ date: -1 })
         .limit(15)
         .exec();

@@ -484,6 +484,8 @@ export class EventService {
   ): Promise<EventDocument> {
     const event = await this.findByStringId(eventId);
 
+    console.log(event);
+
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {
       throw new NotFoundException(

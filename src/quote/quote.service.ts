@@ -229,6 +229,8 @@ export class QuoteService {
 
   async acceptQuote(id: number) {
     const quote = await this.quoteModel.findOne({ id: id });
+    console.log(quote);
+
     if (!quote) throw new NotFoundException('La cotización no fue encontrada');
     quote.status = 'accepted';
     await quote.save();
@@ -256,14 +258,21 @@ export class QuoteService {
       type: Notification_type.quote_accepted,
     });
 
-    return quote;
+    return {
+      message: 'La cotización fue aceptada exitosamente',
+      data: quote,
+    };
   }
 
   async rejectQuote(id: number) {
     const quote = await this.quoteModel.findOne({ id: id });
     if (!quote) throw new NotFoundException('La cotización no fue encontrada');
     quote.status = 'rejected';
-    return await quote.save();
+    const info = await quote.save();
+    return {
+      message: 'La cotización fue rechazada exitosamente',
+      data: info,
+    };
   }
 
   // reporte porcentaje aceptado
