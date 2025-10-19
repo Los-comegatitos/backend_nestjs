@@ -17,7 +17,6 @@ export class NotificationService {
   async sendEmail(email: NotificationDto) {
     let title = '';
     let message = '';
-
     switch (email.type) {
       case Notification_type.event_cancelled:
         title = 'Un evento ha sido cancelado';
@@ -40,12 +39,12 @@ export class NotificationService {
         message = `La tarea "${email.route}" fue declarada por su organizador como terminadas`;
         break;
       case Notification_type.quote_sent:
-        title = 'Haz mandando una cotización';
-        message = `Haz mandado la cotización ${email.route}`;
+        title = 'Has mandando una cotización';
+        message = `Has mandado la cotización ${email.route}`;
         break;
       case Notification_type.quote_received:
-        title = 'Haz recibido una cotización';
-        message = `Haz recibido una cotización del ${email.route}`;
+        title = 'Has recibido una cotización';
+        message = `Has recibido una cotización del ${email.route}`;
         break;
       case Notification_type.quote_accepted:
         title = 'Una de tus cotizaciones ha sido aceptada';
@@ -70,7 +69,7 @@ export class NotificationService {
         name: title,
         description: message,
         status: 'unseen',
-        url: 'https://gestionainador.onrender.com',
+        url: email.url,
       });
 
       await notification.save();

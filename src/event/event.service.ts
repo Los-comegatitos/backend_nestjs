@@ -138,6 +138,7 @@ export class EventService {
         emails: emails,
         type: Notification_type.event_finished,
         route: event.name,
+        url: `/events-providers`,
       });
     }
 
@@ -175,6 +176,7 @@ export class EventService {
         emails: emails,
         type: Notification_type.event_cancelled,
         route: event.name,
+        url: `/events-providers`,
       });
     }
 

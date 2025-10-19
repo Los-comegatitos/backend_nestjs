@@ -30,9 +30,9 @@ export class QuoteService {
       .sort({ date: -1 })
       .lean();
 
-    if (!quotes.length) {
-      throw new NotFoundException('No pending quotes found');
-    }
+    // if (!quotes.length) {
+    //   throw new NotFoundException('No se encontraron cotizaciones');
+    // }
 
     const grouped: Record<string, Array<any>> = {};
 
@@ -85,9 +85,9 @@ export class QuoteService {
       .sort({ date: -1 })
       .lean();
 
-    if (!quotes.length) {
-      throw new NotFoundException('No pending quotes found for this event');
-    }
+    // if (!quotes.length) {
+    //   throw new NotFoundException('No se encontraron cotizaciones para este evento');
+    // }
 
     const grouped: Record<string, Array<any>> = {};
 
@@ -167,12 +167,14 @@ export class QuoteService {
       emails: [email],
       route: `"${body.service.name}" del evento "${event.name}"`,
       type: Notification_type.quote_sent,
+      url: `/supplier_quotes`,
     });
 
     await this.notificationService.sendEmail({
       emails: [organizer.email],
       route: `servicio "${newQuote.service.name}" en el evento "${newQuote.event.name}"`,
       type: Notification_type.quote_received,
+      url: `/event/${event.id}`,
     });
   }
 
@@ -256,6 +258,7 @@ export class QuoteService {
       emails: [provider.email],
       route: `"${quote.service.name}" del evento "${quote.event.name}"`,
       type: Notification_type.quote_accepted,
+      url: `/supplier_quotes`,
     });
 
     return {

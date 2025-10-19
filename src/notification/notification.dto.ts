@@ -24,6 +24,11 @@ export class NotificationDto {
   @IsNotEmpty()
   route: string;
 
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  url: string;
+
   //   @ApiProperty()
   //   @IsString()
   //   @IsNotEmpty()
