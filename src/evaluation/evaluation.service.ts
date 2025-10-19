@@ -83,4 +83,46 @@ export class EvaluationService {
 
     return parseFloat(avg.toFixed(2));
   }
+
+  async getEvaluation(eventId: string, providerId: string) {
+    const evaluation = await this.evaluationModel.findOne({
+      eventId,
+      providerId,
+    });
+
+    if (!evaluation) {
+      return null;
+    }
+
+    return {
+      eventId: evaluation.eventId,
+      providerId: evaluation.providerId,
+      organizerUserId: evaluation.organizerUserId,
+      score: evaluation.score,
+    };
+  }
+  async updateEvaluation(
+    eventId: string,
+    providerId: string,
+    organizerUserId: string,
+    score: number,
+  ) {
+    const existing = await this.evaluationModel.findOne({
+      eventId,
+      providerId,
+    });
+
+    if (existing) {
+      existing.score = score;
+      return await existing.save();
+    } else {
+      const newEval = await this.evaluationModel.create({
+        eventId,
+        providerId,
+        organizerUserId,
+        score,
+      });
+      return newEval.save();
+    }
+  }
 }

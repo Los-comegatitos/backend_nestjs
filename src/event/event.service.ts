@@ -279,7 +279,7 @@ export class EventService {
     return events;
   }
 
-  async findEventsByServiceTypesAndProvider(
+  /*async findEventsByServiceTypesAndProvider(
     serviceTypeIds: string[],
     providerId?: string,
   ): Promise<FilteredEvent[]> {
@@ -339,18 +339,15 @@ export class EventService {
 
     console.log('events', events);
     return events;
-  }
+  }*/
 
   async findEventsForProvider(providerId: number): Promise<FilteredEvent[]> {
     const providerIdString = providerId.toString();
     const serviceTypesId: string[] =
       await this.catalogService.listUsedServiceTypesOnlyId(providerIdString);
 
-    //return await this.findEventsByServiceTypes(serviceTypesId);
-    return await this.findEventsByServiceTypesAndProvider(
-      serviceTypesId,
-      providerIdString,
-    );
+    return await this.findEventsByServiceTypes(serviceTypesId);
+    //return await this.findEventsByServiceTypesAndProvider(serviceTypesId, providerIdString,);
   }
 
   async findById(eventId: string): Promise<EventDocument> {
