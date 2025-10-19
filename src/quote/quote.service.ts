@@ -174,7 +174,7 @@ export class QuoteService {
       emails: [organizer.email],
       route: `servicio "${newQuote.service.name}" en el evento "${newQuote.event.name}"`,
       type: Notification_type.quote_received,
-      url: `/event/${event.id}`,
+      url: `/event/${event.eventId}`,
     });
   }
 

@@ -161,7 +161,7 @@ export class TaskService {
         emails: [email],
         type: Notification_type.task_assigned,
         route: event.name,
-        url: `/events-providers/${eventId}/task-providers`,
+        url: `/events-providers/${event.eventId}/task-providers`,
       });
     }
 
@@ -291,7 +291,7 @@ export class TaskService {
       emails: [email],
       type: Notification_type.task_assigned,
       route: event.name,
-      url: `/events-providers/${eventId}/task-providers`,
+      url: `/events-providers/${event.eventId}/task-providers`,
     });
 
     return info;
@@ -330,7 +330,7 @@ export class TaskService {
       emails: [email],
       type: Notification_type.task_assigned,
       route: event.name,
-      url: `/events-providers/${eventId}/task-providers`,
+      url: `/events-providers/${event.eventId}/task-providers`,
     });
 
     return info;
