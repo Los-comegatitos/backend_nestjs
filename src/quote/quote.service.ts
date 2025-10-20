@@ -30,10 +30,6 @@ export class QuoteService {
       .sort({ date: -1 })
       .lean();
 
-    // if (!quotes.length) {
-    //   throw new NotFoundException('No se encontraron cotizaciones');
-    // }
-
     const grouped: Record<string, Array<any>> = {};
 
     for (const quoteBasic of quotes) {
@@ -60,6 +56,23 @@ export class QuoteService {
       const eventName = eventData?.name ?? 'Unnamed event';
       const key = serviceInfo?.name ?? 'Unknown service type';
 
+      // se usa para obtener el nombre del proveedor osea firstName
+      let providerName = 'Desconocido';
+      try {
+        const provider = await this.userService.findById(quote.providerId);
+        if (provider) {
+          providerName = provider.firstName;
+          //console.log(`Proveedor encontrado: ${providerName} (ID: ${quote.providerId})`);
+        } else {
+          console.log(`Proveedor no encontrado para ID: ${quote.providerId}`);
+        }
+      } catch (error) {
+        console.error(
+          `Error al obtener proveedor con ID ${quote.providerId}:`,
+          error,
+        );
+      }
+
       if (!grouped[key]) grouped[key] = [];
 
       grouped[key].push({
@@ -72,6 +85,7 @@ export class QuoteService {
         date: quote.date ?? new Date(),
         quantity: quote.quantity ?? 0,
         providerId: quote.providerId ?? 0,
+        providerName,
         status: quote.status ?? 'pending',
       });
     }
