@@ -16,11 +16,11 @@ export class TaskProviderController {
   async getTasksForProvider(@Req() req: ExpressRequest) {
     const { userId } = req.user as { userId: number; role: Role };
 
-    console.log('🟢 userId recibido en provider:', userId);
+    console.log('userId recibido en provider:', userId);
 
     const tasks = await this.taskService.getTasksForProvider(userId.toString());
 
-    console.log('🟢 tareas encontradas:', tasks);
+    console.log('tareas encontradas:', tasks);
 
     return {
       message: '000',
