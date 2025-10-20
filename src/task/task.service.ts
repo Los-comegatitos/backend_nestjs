@@ -16,6 +16,9 @@ import { EventDocument } from 'src/event/event.document';
 import { ForbiddenException } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Comment } from './task.document';
+import { UserService } from 'src/user/user.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { Notification_type } from 'src/notification/notification.enum';
 
 @Injectable()
 export class TaskService {
@@ -25,6 +28,8 @@ export class TaskService {
     @InjectModel(Event.name) private eventModel: Model<EventDocument>,
     @InjectConnection() private readonly connection: Connection,
     private readonly eventService: EventService,
+    private readonly userService: UserService,
+    private readonly notificationService: NotificationService,
   ) {
     this.gridFSBucket = new GridFSBucket(this.connection.db!, {
       bucketName: 'files',
@@ -146,6 +151,20 @@ export class TaskService {
     task.completionDate = new Date();
 
     await event.save();
+
+    if (task.associatedProviderId) {
+      const email = (
+        await this.userService.findById(parseInt(task.associatedProviderId))
+      ).email;
+
+      await this.notificationService.sendEmail({
+        emails: [email],
+        type: Notification_type.task_assigned,
+        route: event.name,
+        url: `/events-providers/${event.eventId}/task-providers`,
+      });
+    }
+
     return task;
   }
 
@@ -263,7 +282,19 @@ export class TaskService {
     }
 
     task.associatedProviderId = providerId;
-    return event.save();
+
+    const info = await event.save();
+
+    const email = (await this.userService.findById(parseInt(providerId))).email;
+
+    await this.notificationService.sendEmail({
+      emails: [email],
+      type: Notification_type.task_assigned,
+      route: event.name,
+      url: `/events-providers/${event.eventId}/task-providers`,
+    });
+
+    return info;
   }
 
   async unassignProviderFromTask(
@@ -287,8 +318,22 @@ export class TaskService {
       );
     }
 
+    const id = task.associatedProviderId;
+
     task.associatedProviderId = null;
-    return event.save();
+
+    const info = await event.save();
+
+    const email = (await this.userService.findById(parseInt(id))).email;
+
+    await this.notificationService.sendEmail({
+      emails: [email],
+      type: Notification_type.task_assigned,
+      route: event.name,
+      url: `/events-providers/${event.eventId}/task-providers`,
+    });
+
+    return info;
   }
 
   async addCommentAsOrganizer(
