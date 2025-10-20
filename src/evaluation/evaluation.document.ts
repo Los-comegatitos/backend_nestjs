@@ -4,6 +4,9 @@ import { HydratedDocument } from 'mongoose';
 @Schema({ timestamps: true })
 export class Evaluation {
   @Prop({ required: true })
+  eventId: string;
+
+  @Prop({ required: true })
   organizerUserId: string;
 
   @Prop({ required: true })

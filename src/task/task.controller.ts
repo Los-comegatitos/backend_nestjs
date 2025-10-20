@@ -34,6 +34,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Request as ExpressRequest } from 'express';
+import { UserPayload } from 'src/auth/user-payload.type';
 
 @ApiBearerAuth()
 @ApiTags('Tasks')
@@ -283,7 +284,7 @@ export class TaskController {
     @Body() dto: CreateCommentDto,
     @Req() req: ExpressRequest,
   ) {
-    const { userId } = req.user as { userId: number; role: Role };
+    const { userId } = req.user as UserPayload;
     const comment = await this.taskService.addCommentAsProvider(
       eventId,
       taskId,
@@ -307,7 +308,7 @@ export class TaskController {
     @Param('taskId') taskId: string,
     @Req() req: ExpressRequest,
   ) {
-    const { userId, role } = req.user as { userId: number; role: Role };
+    const { userId, role } = req.user as UserPayload;
     const userType = role === Role.Organizer ? 'organizer' : 'provider';
 
     const comments = await this.taskService.getTaskComments(
@@ -326,6 +327,17 @@ export class TaskController {
 
   @Get('provider')
   @Roles(Role.Provider)
+  // Así es cómo estaba antes
+  // @ApiOperation({ summary: 'List tasks assigned to a provider in an event' })
+  // async getTasksForProvider(
+  //   @Param('eventId') eventId: string,
+  //   @Req() req: ExpressRequest,
+  // ) {
+  //   const { userId } = req.user as UserPayload;
+  //   const tasks = await this.taskService.getTasksForProvider(
+  //     eventId,
+  //     userId.toString(),
+  //   );
   @ApiOperation({
     summary: 'List tasks assigned to a provider across all events',
   })

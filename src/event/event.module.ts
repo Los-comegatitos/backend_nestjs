@@ -9,6 +9,8 @@ import { CatalogModule } from 'src/catalog/catalog.module';
 import { QuoteModule } from 'src/quote/quote.module';
 import { Quote, QuoteShema } from 'src/quote/quote.document';
 import { User } from 'src/user/user.entity';
+import { NotificationModule } from 'src/notification/notification.module';
+import { UserModule } from 'src/user/user.module';
 import { ClientTypeModule } from 'src/client_type/client_type.module';
 
 @Module({
@@ -22,6 +24,8 @@ import { ClientTypeModule } from 'src/client_type/client_type.module';
     CatalogModule,
     ClientTypeModule,
     forwardRef(() => QuoteModule),
+    NotificationModule,
+    UserModule,
   ],
   providers: [EventService],
   controllers: [EventController],
