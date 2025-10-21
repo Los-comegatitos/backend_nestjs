@@ -22,7 +22,7 @@ import { ClientTypeModule } from 'src/client_type/client_type.module';
     TypeOrmModule.forFeature([EventType]),
     TypeOrmModule.forFeature([EventType, User]),
     CatalogModule,
-    ClientTypeModule,
+    forwardRef(() => ClientTypeModule),
     forwardRef(() => QuoteModule),
     NotificationModule,
     UserModule,

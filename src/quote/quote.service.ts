@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Quote, QuoteDocument, Service } from './quote.document';
@@ -15,6 +20,7 @@ export class QuoteService {
     @InjectModel(Quote.name)
     private readonly quoteModel: Model<QuoteDocument>,
     private readonly serviceTypeService: ServiceTypeService,
+    @Inject(forwardRef(() => EventService))
     private readonly eventService: EventService,
     private readonly notificationService: NotificationService,
     private readonly userService: UserService,
@@ -327,5 +333,14 @@ export class QuoteService {
       type: id === 'sin_tipo' ? 'Sin tipo' : idToName[id] || 'Desconocido',
       count,
     }));
+  }
+
+  async findQuoteUsingService(
+    serviceName: string,
+    providerId: number,
+  ): Promise<Quote | null> {
+    return await this.quoteModel
+      .findOne({ 'service.name': serviceName, providerId: providerId })
+      .exec();
   }
 }

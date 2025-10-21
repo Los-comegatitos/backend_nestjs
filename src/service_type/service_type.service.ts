@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,12 +10,18 @@ import { ServiceType } from './service_type.entity';
 import { Repository } from 'typeorm';
 import { CreateServiceTypeDto } from './dto/create-service_type.dto';
 import { UpdateServiceTypeDto } from './dto/update-service_type.dto';
+import { EventService } from 'src/event/event.service';
+import { CatalogService } from 'src/catalog/catalog.service';
 
 @Injectable()
 export class ServiceTypeService {
   constructor(
     @InjectRepository(ServiceType)
     private readonly serviceTypeRepository: Repository<ServiceType>,
+    @Inject(forwardRef(() => EventService))
+    private readonly eventService: EventService,
+    @Inject(forwardRef(() => CatalogService))
+    private readonly catalogService: CatalogService,
   ) {}
 
   async create(dto: CreateServiceTypeDto): Promise<ServiceType> {
@@ -74,6 +82,19 @@ export class ServiceTypeService {
 
   async remove(id: number): Promise<{ message: string }> {
     const typeservice = await this.findOne(id);
+    const usedByEvent = await this.eventService.findEventUsingServiceType(
+      id.toString(),
+    );
+    const usedByCatalog = await this.catalogService.findCatalogUsingServiceType(
+      id.toString(),
+    );
+
+    if (usedByEvent !== null || usedByCatalog !== null) {
+      throw new BadRequestException(
+        'Este tipo de servicio no puede ser eliminado porque está en uso',
+      );
+    }
+
     await this.serviceTypeRepository.remove(typeservice);
     return { message: 'El tipo de servicio fue eliminado exitosamente' };
   }

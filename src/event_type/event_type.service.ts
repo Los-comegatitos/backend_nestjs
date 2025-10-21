@@ -8,12 +8,14 @@ import { Repository } from 'typeorm';
 import { EventType } from './event_type.entity';
 import { CreateEventTypeDto } from './dto/create-event_type.dto';
 import { UpdateEventTypeDto } from './dto/update-event_type.dto';
+import { EventService } from 'src/event/event.service';
 
 @Injectable()
 export class EventTypeService {
   constructor(
     @InjectRepository(EventType)
     private readonly eventTypeRepository: Repository<EventType>,
+    private readonly eventService: EventService,
   ) {}
 
   async create(dto: CreateEventTypeDto): Promise<EventType> {
@@ -68,6 +70,17 @@ export class EventTypeService {
 
   async remove(id: number): Promise<{ message: string }> {
     const eventType = await this.findOne(id);
+
+    const usedByEvent = await this.eventService.findEventUsingEventType(
+      id.toString(),
+    );
+
+    if (usedByEvent !== null) {
+      throw new BadRequestException(
+        'Este tipo de evento no puede ser eliminado porque está en uso',
+      );
+    }
+
     await this.eventTypeRepository.remove(eventType);
     return { message: 'El tipo de evento fue eliminado exitosamente' };
   }
