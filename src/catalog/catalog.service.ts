@@ -10,12 +10,14 @@ import { UpdateCatalogDto } from './dto/update-catalog.dto';
 import { AddCatalogServiceDto } from './dto/add-catalog-service.dto';
 import { ServiceTypeService } from 'src/service_type/service_type.service';
 import { ServiceType } from 'src/service_type/service_type.entity';
+import { QuoteService } from 'src/quote/quote.service';
 
 @Injectable()
 export class CatalogService {
   constructor(
     @InjectModel(Catalog.name) private catalogModel: Model<CatalogDocument>,
     private readonly serviceTypeService: ServiceTypeService,
+    private readonly quoteService: QuoteService,
   ) {}
 
   async create(providerId: string) {
@@ -36,6 +38,14 @@ export class CatalogService {
     });
 
     return newCatalog.save();
+  }
+
+  async findCatalogUsingServiceType(
+    serviceTypeId: string,
+  ): Promise<Catalog | null> {
+    return await this.catalogModel
+      .findOne({ 'services.serviceTypeId': serviceTypeId })
+      .exec();
   }
 
   async findByProviderId(providerId: string): Promise<CatalogDocument> {
@@ -92,6 +102,17 @@ export class CatalogService {
     providerId: number,
     name: string,
   ): Promise<CatalogDocument> {
+    const usedByQuote = await this.quoteService.findQuoteUsingService(
+      name,
+      providerId,
+    );
+
+    if (usedByQuote !== null) {
+      throw new BadRequestException(
+        'Este servicio no puede ser eliminado porque ya se cotizó en una o más cotizaciones.',
+      );
+    }
+
     const providerIdString = providerId.toString();
     const catalog = await this.findByProviderId(providerIdString);
     const initialLength = catalog.services.length;
@@ -122,6 +143,13 @@ export class CatalogService {
         'El servicio con este nombre no fue encontrado.',
       );
     }
+    const serviceExists = catalog.services.some((s) => s.name === dto.name);
+    if (serviceExists) {
+      throw new BadRequestException(
+        'Ya existe un servicio con este nombre en el catálogo.',
+      );
+    }
+
     Object.assign(serviceToUpdate, dto);
     return catalog.save();
   }

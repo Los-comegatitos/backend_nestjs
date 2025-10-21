@@ -10,5 +10,6 @@ import { Event, EventSchema } from 'src/event/event.document';
   ],
   providers: [ServiceService],
   controllers: [ServiceController],
+  exports: [ServiceService],
 })
 export class ServiceModule {}

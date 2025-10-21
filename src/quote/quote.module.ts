@@ -18,6 +18,6 @@ import { UserModule } from 'src/user/user.module';
   ],
   providers: [QuoteService],
   controllers: [QuoteController],
-  exports: [MongooseModule],
+  exports: [MongooseModule, QuoteService],
 })
 export class QuoteModule {}
