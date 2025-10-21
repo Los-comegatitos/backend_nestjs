@@ -69,22 +69,14 @@ export class EventController {
   @Get('/average-task-time')
   @Roles(Role.Organizer)
   async getAverageTaskTime(@Req() datos: Request) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.eventService.getAverageTaskCompletionTime(userId);
   }
 
   @Get('/client-type-stats')
   @Roles(Role.Organizer)
   async getClientTypeStats(@Req() datos: Request) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.eventService.getClientTypeStats(userId);
   }
 

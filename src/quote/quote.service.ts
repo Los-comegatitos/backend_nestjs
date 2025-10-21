@@ -68,6 +68,8 @@ export class QuoteService {
 
       if (!grouped[key]) grouped[key] = [];
 
+      const infoProvider = await this.userService.findById(quote.providerId);
+
       grouped[key].push({
         id: quote.id,
         name: serviceName,
@@ -77,7 +79,7 @@ export class QuoteService {
         eventName,
         date: quote.date ?? new Date(),
         quantity: quote.quantity ?? 0,
-        providerId: quote.providerId ?? 0,
+        provider: infoProvider,
         status: quote.status ?? 'pending',
       });
     }
