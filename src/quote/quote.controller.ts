@@ -28,22 +28,14 @@ export class QuoteController {
   @Get('accepted-quotes-percentage')
   @Roles(Role.Provider)
   async getAcceptedQuotesPercentage(@Req() datos: ExpressRequest) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.quoteService.getAcceptedQuotesPercentage(userId);
   }
 
   @Get('service-type-stats')
   @Roles(Role.Provider)
   async getServiceTypeStats(@Req() datos: ExpressRequest) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.quoteService.getServiceTypeStats(userId);
   }
 
@@ -53,17 +45,13 @@ export class QuoteController {
     @Req() req: ExpressRequest,
     @Query('eventId') eventId?: string,
   ) {
-    const user = req.user as { userId: number; role: Role; email: string };
-    const organizerId = user.userId;
+    const { userId } = req.user as UserPayload;
 
     if (eventId) {
-      return this.quoteService.getPendingQuotesByEvent(
-        organizerId,
-        Number(eventId),
-      );
+      return this.quoteService.getPendingQuotesByEvent(userId, Number(eventId));
     }
 
-    return this.quoteService.getPendingQuotesByOrganizer(organizerId);
+    return this.quoteService.getPendingQuotesByOrganizer(userId);
   }
 
   @Get('sent/:providerId')
