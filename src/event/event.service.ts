@@ -416,7 +416,7 @@ export class EventService {
     const organizerIdString = organizerId.toString();
     const event = await this.eventModel.findOne({
       eventId: eventId,
-      organizerUserId: organizerIdString,
+      // organizerUserId: organizerIdString,
     });
 
     if (!event) {
