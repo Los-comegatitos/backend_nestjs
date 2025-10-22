@@ -130,7 +130,7 @@ export class EventController {
     return event;
   }
 
-  @Roles(Role.Organizer)
+  @Roles(Role.Organizer, Role.Provider)
   @Get(':eventId')
   @ApiOperation({
     summary:
