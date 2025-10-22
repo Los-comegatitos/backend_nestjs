@@ -19,10 +19,11 @@ import { CreateEvaluationDto } from './dto/create-evaluation.dto';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/roles.enum';
+import { JwtAuthGuard } from 'src/auth/jwt-strategy/jwt-auth.guard';
 
 @ApiTags('Evaluations')
 @Controller('events')
-@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class EvaluationController {
   constructor(private readonly evaluationService: EvaluationService) {}
 
@@ -61,6 +62,7 @@ export class EvaluationController {
   }
 
   @Get('providers/:providerId/average')
+  @Roles(Role.Organizer, Role.Provider)
   @ApiOperation({
     summary: 'Obtener el promedio de calificaciones de un proveedor',
   })
@@ -95,6 +97,7 @@ export class EvaluationController {
   }
 
   @Get(':eventId/providers/:providerId/evaluation')
+  @Roles(Role.Organizer, Role.Provider)
   async getEvaluation(
     @Param('eventId') eventId: string,
     @Param('providerId') providerId: string,
