@@ -425,6 +425,8 @@ export class EventService {
       );
     }
 
+    console.log(event);
+
     return event;
   }
 
@@ -556,6 +558,8 @@ export class EventService {
       return [];
     }
 
+    // console.log(quotes);
+
     //vector de ids únicos de proveedores
     const providerIds = [...new Set(quotes.map((q) => q.providerId))];
 
@@ -569,6 +573,7 @@ export class EventService {
     const result = quotes.map((quote) => {
       const provider = providers.find((p) => p.id === quote.providerId);
       return {
+        id: quote.id as number,
         providerId: quote.providerId,
         providerName: provider
           ? `${provider.firstName} ${provider.lastName}`
@@ -580,6 +585,8 @@ export class EventService {
         },
       };
     });
+
+    // console.log(result);
 
     return result;
   }
