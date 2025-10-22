@@ -27,7 +27,7 @@ export class EvaluationService {
     const event = await this.eventModel.findOne({ eventId });
     if (!event) throw new NotFoundException('Evento no encontrado.');
 
-    if (event.status !== 'finished') {
+    if (event.status !== 'finalized') {
       throw new BadRequestException(
         'Solo puedes calificar cuando el evento ha finalizado.',
       );
