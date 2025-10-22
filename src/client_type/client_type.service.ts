@@ -8,12 +8,14 @@ import { Repository } from 'typeorm';
 import { UpdateClientTypeDto } from './dto/update-client_type.dto';
 import { ClientType } from './client_type.entity';
 import { CreateTypeClientDto } from './dto/create-client_type.dto';
+import { EventService } from 'src/event/event.service';
 
 @Injectable()
 export class ClientTypeService {
   constructor(
     @InjectRepository(ClientType)
     private readonly clientTypeRepo: Repository<ClientType>,
+    private readonly eventService: EventService,
   ) {}
 
   async create(dto: CreateTypeClientDto): Promise<ClientType> {
@@ -68,6 +70,15 @@ export class ClientTypeService {
 
   async remove(id: number): Promise<{ message: string }> {
     const typeclient = await this.findOne(id);
+
+    const usedByEvent = await this.eventService.findEventUsingClientType(id);
+
+    if (usedByEvent !== null) {
+      throw new BadRequestException(
+        'Este tipo de cliente no puede ser eliminado porque está en uso',
+      );
+    }
+
     await this.clientTypeRepo.remove(typeclient);
     return { message: 'El tipo de cliente fue eliminado exitosamente' };
   }

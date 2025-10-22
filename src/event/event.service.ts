@@ -1,4 +1,9 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event, EventDocument } from './event.document';
@@ -29,6 +34,7 @@ export class EventService {
     private readonly catalogService: CatalogService,
     private readonly userService: UserService,
     private readonly notificationService: NotificationService,
+    @Inject(forwardRef(() => ClientTypeService))
     private readonly clientTypeService: ClientTypeService,
   ) {}
 
@@ -77,6 +83,24 @@ export class EventService {
     return this.eventModel.find({ organizerUserId: organizerIdString }).exec();
   }
 
+  async findEventUsingServiceType(
+    serviceTypeId: string,
+  ): Promise<Event | null> {
+    return await this.eventModel
+      .findOne({ 'services.serviceTypeId': serviceTypeId })
+      .exec();
+  }
+
+  async findEventUsingEventType(eventTypeId: string): Promise<Event | null> {
+    return await this.eventModel.findOne({ eventTypeId: eventTypeId }).exec();
+  }
+
+  async findEventUsingClientType(clientTypeId: number): Promise<Event | null> {
+    return await this.eventModel
+      .findOne({ 'client.clientTypeId': clientTypeId })
+      .exec();
+  }
+
   async update(
     eventId: number,
     updateEventDto: UpdateEventDto,
@@ -92,9 +116,22 @@ export class EventService {
       }
     }
 
+    let updateQuery: any = { ...updateEventDto };
+
+    if (updateEventDto.client === undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      delete updateQuery.client;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      updateQuery = {
+        ...updateQuery,
+        $unset: { client: '' },
+      };
+    }
+
     const updatedEvent = await this.eventModel.findOneAndUpdate(
       { eventId },
-      updateEventDto,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      updateQuery,
       { new: true },
     );
 
@@ -457,6 +494,13 @@ export class EventService {
     if (!serviceToUpdate) {
       throw new NotFoundException(
         'El servicio con este nombre no fue encontrado.',
+      );
+    }
+
+    const exists = event.services.some((s) => s.name === dto.name);
+    if (exists) {
+      throw new BadRequestException(
+        'Un servicio con este nombre ya existe en el evento.',
       );
     }
 

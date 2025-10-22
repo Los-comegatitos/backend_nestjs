@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Quote, QuoteDocument, Service } from './quote.document';
@@ -15,6 +20,7 @@ export class QuoteService {
     @InjectModel(Quote.name)
     private readonly quoteModel: Model<QuoteDocument>,
     private readonly serviceTypeService: ServiceTypeService,
+    @Inject(forwardRef(() => EventService))
     private readonly eventService: EventService,
     private readonly notificationService: NotificationService,
     private readonly userService: UserService,
@@ -57,7 +63,7 @@ export class QuoteService {
       const key = serviceInfo?.name ?? 'Unknown service type';
 
       // se usa para obtener el nombre del proveedor osea firstName
-      let providerName = 'Desconocido';
+      /*let providerName = 'Desconocido';
       try {
         const provider = await this.userService.findById(quote.providerId);
         if (provider) {
@@ -71,9 +77,11 @@ export class QuoteService {
           `Error al obtener proveedor con ID ${quote.providerId}:`,
           error,
         );
-      }
+      }*/
 
       if (!grouped[key]) grouped[key] = [];
+
+      const infoProvider = await this.userService.findById(quote.providerId);
 
       grouped[key].push({
         id: quote.id,
@@ -84,8 +92,7 @@ export class QuoteService {
         eventName,
         date: quote.date ?? new Date(),
         quantity: quote.quantity ?? 0,
-        providerId: quote.providerId ?? 0,
-        providerName,
+        provider: infoProvider,
         status: quote.status ?? 'pending',
       });
     }
@@ -341,5 +348,14 @@ export class QuoteService {
       type: id === 'sin_tipo' ? 'Sin tipo' : idToName[id] || 'Desconocido',
       count,
     }));
+  }
+
+  async findQuoteUsingService(
+    serviceName: string,
+    providerId: number,
+  ): Promise<Quote | null> {
+    return await this.quoteModel
+      .findOne({ 'service.name': serviceName, providerId: providerId })
+      .exec();
   }
 }

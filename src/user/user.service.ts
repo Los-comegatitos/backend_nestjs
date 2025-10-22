@@ -3,6 +3,8 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -23,6 +25,7 @@ export class UserService {
     private userRepo: Repository<User>,
     @InjectRepository(User_Type)
     private usertypeRepo: Repository<User_Type>,
+    @Inject(forwardRef(() => CatalogService))
     private readonly catalogService: CatalogService,
   ) {}
 
