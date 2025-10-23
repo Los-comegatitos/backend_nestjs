@@ -276,7 +276,7 @@ export class EventService {
   async findEventsByServiceTypes(
     serviceTypeIds: string[],
   ): Promise<FilteredEvent[]> {
-    console.log('serviceTypeIds', serviceTypeIds);
+    // console.log('serviceTypeIds', serviceTypeIds);
     const events: FilteredEvent[] = (await this.eventModel
       .aggregate([
         {
@@ -313,7 +313,7 @@ export class EventService {
       ])
       .exec()) as FilteredEvent[];
 
-    console.log('events', events);
+    // console.log('events', events);
 
     return events;
   }
@@ -527,7 +527,7 @@ export class EventService {
   ): Promise<EventDocument> {
     const event = await this.findByStringId(eventId);
 
-    console.log(event);
+    //console.log(event);
 
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {
