@@ -29,7 +29,6 @@ export class EventService {
     @InjectModel(Event.name) private readonly eventModel: Model<Event>,
     @InjectModel(Quote.name) private readonly quoteModel: Model<QuoteDocument>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(EventType)
     private readonly eventTypeRepository: Repository<EventType>,
     private readonly catalogService: CatalogService,
