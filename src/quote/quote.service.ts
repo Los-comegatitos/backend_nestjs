@@ -286,6 +286,23 @@ export class QuoteService {
     };
   }
 
+  // reporte porcentaje aceptado
+  async getAcceptedQuotesPercentage(providerId: number): Promise<string> {
+    const total = await this.quoteModel.countDocuments({
+      providerId: providerId,
+    });
+    if (total === 0) return '0%';
+
+    const accepted = await this.quoteModel.countDocuments({
+      status: 'accepted',
+      providerId: providerId,
+    });
+
+    const percentage = ((accepted / total) * 100).toFixed(1) + '%';
+
+    return percentage;
+  }
+
   // reporte tipo servicio mas frecuente en las cotizaciones enviadas
   async getServiceTypeStats(
     providerId: number,
@@ -327,22 +344,5 @@ export class QuoteService {
     return await this.quoteModel
       .findOne({ 'service.name': serviceName, providerId: providerId })
       .exec();
-  }
-
-  // reporte porcentaje aceptado
-  async getAcceptedQuotesPercentage(providerId: number): Promise<string> {
-    const total = await this.quoteModel.countDocuments({
-      providerId: providerId,
-    });
-    if (total === 0) return '0%';
-
-    const accepted = await this.quoteModel.countDocuments({
-      status: 'accepted',
-      providerId: providerId,
-    });
-
-    const percentage = ((accepted / total) * 100).toFixed(1) + '%';
-
-    return percentage;
   }
 }
