@@ -239,7 +239,7 @@ export class QuoteService {
 
   async acceptQuote(id: number) {
     const quote = await this.quoteModel.findOne({ id: id });
-    console.log(quote);
+    // console.log(quote);
 
     if (!quote) throw new NotFoundException('La cotización no fue encontrada');
     quote.status = 'accepted';
