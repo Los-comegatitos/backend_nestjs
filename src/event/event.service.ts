@@ -1,4 +1,9 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event, EventDocument } from './event.document';
@@ -14,6 +19,9 @@ import { AddServiceDto } from './dto/event-service.dto';
 import { Quote, QuoteDocument } from 'src/quote/quote.document';
 import { User } from 'src/user/user.entity';
 import { In } from 'typeorm';
+import { UserService } from 'src/user/user.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { Notification_type } from 'src/notification/notification.enum';
 import { ClientTypeService } from 'src/client_type/client_type.service';
 
 export class EventService {
@@ -21,9 +29,13 @@ export class EventService {
     @InjectModel(Event.name) private readonly eventModel: Model<Event>,
     @InjectModel(Quote.name) private readonly quoteModel: Model<QuoteDocument>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(EventType)
     private readonly eventTypeRepository: Repository<EventType>,
     private readonly catalogService: CatalogService,
+    private readonly userService: UserService,
+    private readonly notificationService: NotificationService,
+    @Inject(forwardRef(() => ClientTypeService))
     private readonly clientTypeService: ClientTypeService,
   ) {}
 
@@ -72,6 +84,24 @@ export class EventService {
     return this.eventModel.find({ organizerUserId: organizerIdString }).exec();
   }
 
+  async findEventUsingServiceType(
+    serviceTypeId: string,
+  ): Promise<Event | null> {
+    return await this.eventModel
+      .findOne({ 'services.serviceTypeId': serviceTypeId })
+      .exec();
+  }
+
+  async findEventUsingEventType(eventTypeId: string): Promise<Event | null> {
+    return await this.eventModel.findOne({ eventTypeId: eventTypeId }).exec();
+  }
+
+  async findEventUsingClientType(clientTypeId: number): Promise<Event | null> {
+    return await this.eventModel
+      .findOne({ 'client.clientTypeId': clientTypeId })
+      .exec();
+  }
+
   async update(
     eventId: number,
     updateEventDto: UpdateEventDto,
@@ -87,9 +117,22 @@ export class EventService {
       }
     }
 
+    let updateQuery: any = { ...updateEventDto };
+
+    if (updateEventDto.client === undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      delete updateQuery.client;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      updateQuery = {
+        ...updateQuery,
+        $unset: { client: '' },
+      };
+    }
+
     const updatedEvent = await this.eventModel.findOneAndUpdate(
       { eventId },
-      updateEventDto,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      updateQuery,
       { new: true },
     );
 
@@ -117,6 +160,26 @@ export class EventService {
       );
     }
 
+    const providers = await this.getAcceptedProvidersByEvent(eventId);
+
+    const users = [...new Set(providers.map((e) => e.providerId))];
+
+    if (users.length != 0) {
+      const emails = await Promise.all(
+        users.map(async (id) => {
+          const info = await this.userService.findById(id);
+          return info.email;
+        }),
+      );
+
+      await this.notificationService.sendEmail({
+        emails: emails,
+        type: Notification_type.event_finished,
+        route: event.name,
+        url: `/events-providers`,
+      });
+    }
+
     return event;
   }
 
@@ -133,6 +196,26 @@ export class EventService {
       throw new NotFoundException(
         `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
       );
+    }
+
+    const providers = await this.getAcceptedProvidersByEvent(eventId);
+
+    const users = [...new Set(providers.map((e) => e.providerId))];
+
+    if (users.length != 0) {
+      const emails = await Promise.all(
+        users.map(async (id) => {
+          const info = await this.userService.findById(id);
+          return info.email;
+        }),
+      );
+
+      await this.notificationService.sendEmail({
+        emails: emails,
+        type: Notification_type.event_cancelled,
+        route: event.name,
+        url: `/events-providers`,
+      });
     }
 
     return event;
@@ -194,7 +277,7 @@ export class EventService {
   async findEventsByServiceTypes(
     serviceTypeIds: string[],
   ): Promise<FilteredEvent[]> {
-    console.log('serviceTypeIds', serviceTypeIds);
+    // console.log('serviceTypeIds', serviceTypeIds);
     const events: FilteredEvent[] = (await this.eventModel
       .aggregate([
         {
@@ -231,12 +314,12 @@ export class EventService {
       ])
       .exec()) as FilteredEvent[];
 
-    console.log('events', events);
+    // console.log('events', events);
 
     return events;
   }
 
-  async findEventsByServiceTypesAndProvider(
+  /*async findEventsByServiceTypesAndProvider(
     serviceTypeIds: string[],
     providerId?: string,
   ): Promise<FilteredEvent[]> {
@@ -296,18 +379,15 @@ export class EventService {
 
     console.log('events', events);
     return events;
-  }
+  }*/
 
   async findEventsForProvider(providerId: number): Promise<FilteredEvent[]> {
     const providerIdString = providerId.toString();
     const serviceTypesId: string[] =
       await this.catalogService.listUsedServiceTypesOnlyId(providerIdString);
 
-    //return await this.findEventsByServiceTypes(serviceTypesId);
-    return await this.findEventsByServiceTypesAndProvider(
-      serviceTypesId,
-      providerIdString,
-    );
+    return await this.findEventsByServiceTypes(serviceTypesId);
+    //return await this.findEventsByServiceTypesAndProvider(serviceTypesId, providerIdString,);
   }
 
   async findById(eventId: string): Promise<EventDocument> {
@@ -337,7 +417,7 @@ export class EventService {
     const organizerIdString = organizerId.toString();
     const event = await this.eventModel.findOne({
       eventId: eventId,
-      organizerUserId: organizerIdString,
+      // organizerUserId: organizerIdString,
     });
 
     if (!event) {
@@ -418,6 +498,13 @@ export class EventService {
       );
     }
 
+    const exists = event.services.some((s) => s.name === dto.name);
+    if (exists) {
+      throw new BadRequestException(
+        'Un servicio con este nombre ya existe en el evento.',
+      );
+    }
+
     if (serviceToUpdate.quote) {
       throw new BadRequestException(
         'No se puede modificar un servicio que ya tiene una cotización.',
@@ -440,6 +527,8 @@ export class EventService {
     },
   ): Promise<EventDocument> {
     const event = await this.findByStringId(eventId);
+
+    //console.log(event);
 
     const service = event.services.find((s) => s.name === serviceName);
     if (!service) {

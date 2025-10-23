@@ -21,7 +21,7 @@ export class Event {
   @Prop()
   organizerUserId: string;
   @Prop()
-  status: 'in progress' | 'finished' | 'canceled';
+  status: 'in progress' | 'finalized' | 'canceled';
   @Prop({ type: Object })
   client: {
     name: string;

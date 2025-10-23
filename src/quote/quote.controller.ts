@@ -15,8 +15,10 @@ import { Role } from 'src/auth/roles.enum';
 import { QuoteService } from './quote.service';
 import { QuoteDto } from './quote.dto';
 // no entiendo por qué hicieron la importación pero bueno aja, seguiré la estructura que hicieron en este controller xd
+// no entiendo por qué hicieron la importación pero bueno aja, seguiré la estructura que hicieron en este controller xd
 import { Request as ExpressRequest } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { UserPayload } from 'src/auth/user-payload.type';
 
 @ApiBearerAuth()
 @Controller('quote')
@@ -27,22 +29,14 @@ export class QuoteController {
   @Get('accepted-quotes-percentage')
   @Roles(Role.Provider)
   async getAcceptedQuotesPercentage(@Req() datos: ExpressRequest) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.quoteService.getAcceptedQuotesPercentage(userId);
   }
 
   @Get('service-type-stats')
   @Roles(Role.Provider)
   async getServiceTypeStats(@Req() datos: ExpressRequest) {
-    const { userId } = datos.user as {
-      userId: number;
-      email: string;
-      role: string;
-    };
+    const { userId } = datos.user as UserPayload;
     return await this.quoteService.getServiceTypeStats(userId);
   }
 
@@ -52,17 +46,13 @@ export class QuoteController {
     @Req() req: ExpressRequest,
     @Query('eventId') eventId?: string,
   ) {
-    const user = req.user as { userId: number; role: Role; email: string };
-    const organizerId = user.userId;
+    const { userId } = req.user as UserPayload;
 
     if (eventId) {
-      return this.quoteService.getPendingQuotesByEvent(
-        organizerId,
-        Number(eventId),
-      );
+      return this.quoteService.getPendingQuotesByEvent(userId, Number(eventId));
     }
 
-    return this.quoteService.getPendingQuotesByOrganizer(organizerId);
+    return this.quoteService.getPendingQuotesByOrganizer(userId);
   }
 
   @Get('sent/:providerId')
@@ -80,8 +70,8 @@ export class QuoteController {
   @Post('send')
   @Roles(Role.Provider)
   async sendQuotes(@Req() req: ExpressRequest, @Body() createQuote: QuoteDto) {
-    const user = req.user as { userId: number; role: Role; email: string };
-    return this.quoteService.sendQuotes(createQuote, user.userId);
+    const user = req.user as UserPayload;
+    return this.quoteService.sendQuotes(createQuote, user.userId, user.email);
   }
 
   @Post(':quoteId/accept')

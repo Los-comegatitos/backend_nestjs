@@ -8,7 +8,7 @@ export class Notification {
   @Prop()
   id: number;
   @Prop()
-  toUserId: number;
+  toUserEmail: string;
   @Prop()
   date: Date;
   @Prop()
@@ -17,6 +17,8 @@ export class Notification {
   description: string;
   @Prop()
   status: string;
+  @Prop()
+  url: string;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);
