@@ -345,4 +345,55 @@ export class QuoteService {
       .findOne({ 'service.name': serviceName, providerId: providerId })
       .exec();
   }
+
+  // reporte porcentaje aceptado
+  async getAcceptedQuotesPercentage(providerId: number): Promise<string> {
+    const total = await this.quoteModel.countDocuments({
+      providerId: providerId,
+    });
+    if (total === 0) return '0%';
+
+    const accepted = await this.quoteModel.countDocuments({
+      status: 'accepted',
+      providerId: providerId,
+    });
+
+    const percentage = ((accepted / total) * 100).toFixed(1) + '%';
+
+    return percentage;
+  }
+
+  // reporte tipo servicio mas frecuente en las cotizaciones enviadas
+  async getServiceTypeStats(
+    providerId: number,
+  ): Promise<{ type: string; count: number }[]> {
+    const quotes = await this.quoteModel.find({
+      providerId: providerId,
+    });
+
+    const counts: Record<string, number> = {};
+
+    for (const quote of quotes) {
+      const typeId = quote.toServiceId || 'sin_tipo';
+      counts[typeId] = (counts[typeId] || 0) + 1;
+    }
+
+    // obtener nombres solo una vez por id
+    const ids = Object.keys(counts).filter((id) => id !== 'sin_tipo');
+    const idToName: Record<string, string> = {};
+
+    for (const id of ids) {
+      try {
+        const type = await this.serviceTypeService.findOne(Number(id));
+        idToName[id] = type?.name || `Tipo ${id}`;
+      } catch {
+        idToName[id] = 'Desconocido';
+      }
+    }
+
+    return Object.entries(counts).map(([id, count]) => ({
+      type: id === 'sin_tipo' ? 'Sin tipo' : idToName[id] || 'Desconocido',
+      count,
+    }));
+  }
 }
