@@ -174,6 +174,7 @@ export class TaskController {
   }
   @Post(':taskId/file')
   @Roles(Role.Organizer, Role.Provider)
+  @Roles(Role.Organizer, Role.Provider)
   @ApiOperation({ summary: 'Upload file for a task' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({

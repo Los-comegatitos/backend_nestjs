@@ -419,6 +419,7 @@ export class TaskService {
     }
 
     // orden cronologico (mas antiguos primero) obviamente :v
+    // orden cronologico (mas antiguos primero) obviamente :v
     return task.comments.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
