@@ -40,37 +40,36 @@ export class EventService {
 
   async create(
     createEventDto: CreateEventDto,
-    organizerId: number,
+    organizerUserId: string,
   ): Promise<Event> {
-    const organizerIdString = organizerId.toString();
+    const { name, eventDate } = createEventDto;
 
-    // validacion eventType
-    const eventType = await this.eventTypeRepository.findOne({
-      where: { id: createEventDto.eventTypeId },
+    // Verificar nombre duplicado
+    const existingEvent = await this.eventModel.findOne({
+      name: { $regex: new RegExp(`^${name}$`, 'i') },
     });
-    if (!eventType) {
-      throw new NotFoundException(
-        `El tipo de evento con id ${createEventDto.eventTypeId} no existe`,
+
+    if (existingEvent) {
+      throw new BadRequestException('Ya existe un evento con ese nombre.');
+    }
+
+    // Validar que la fecha no sea anterior a hoy
+    const today = new Date();
+    const newDate = new Date(eventDate);
+    if (newDate < today) {
+      throw new BadRequestException(
+        'La fecha del evento no puede ser anterior a la fecha actual.',
       );
     }
 
-    // TODO debería aquí validación clientType
-    //
-
-    const lastEvent = await this.eventModel
-      .findOne()
-      .sort({ eventId: -1 })
-      .exec();
-    const nextEventId = lastEvent ? `${parseInt(lastEvent.eventId) + 1}` : '1';
-
-    const createdEvent = new this.eventModel({
+    const event = new this.eventModel({
       ...createEventDto,
-      organizerUserId: organizerIdString,
-      eventId: nextEventId,
+      organizerUserId,
       status: 'in progress',
+      creationDate: new Date(),
     });
 
-    return createdEvent.save();
+    return event.save();
   }
 
   async findAll(): Promise<Event[]> {
@@ -101,47 +100,27 @@ export class EventService {
       .exec();
   }
 
-  async update(
-    eventId: number,
+  async updateEvent(
+    eventId: string,
     updateEventDto: UpdateEventDto,
   ): Promise<Event> {
-    if (updateEventDto.eventTypeId) {
-      const eventType = await this.eventTypeRepository.findOne({
-        where: { id: updateEventDto.eventTypeId },
-      });
-      if (!eventType) {
-        throw new NotFoundException(
-          `El tipo de evento con id ${updateEventDto.eventTypeId} no existe`,
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event) throw new NotFoundException('Evento no encontrado');
+
+    // Validar fecha
+    if (updateEventDto.eventDate) {
+      const newDate = new Date(updateEventDto.eventDate);
+      const today = new Date();
+      if (newDate < today) {
+        throw new BadRequestException(
+          'La fecha del evento no puede ser anterior a hoy.',
         );
       }
     }
 
-    let updateQuery: any = { ...updateEventDto };
-
-    if (updateEventDto.client === undefined) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete updateQuery.client;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      updateQuery = {
-        ...updateQuery,
-        $unset: { client: '' },
-      };
-    }
-
-    const updatedEvent = await this.eventModel.findOneAndUpdate(
-      { eventId },
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      updateQuery,
-      { new: true },
-    );
-
-    if (!updatedEvent) {
-      throw new NotFoundException(
-        `El evento con eventId "${eventId}" no encontrado`,
-      );
-    }
-
-    return updatedEvent;
+    Object.assign(event, updateEventDto);
+    await event.save();
+    return event;
   }
 
   async finalize(eventId: number, organizerId: number): Promise<Event> {
