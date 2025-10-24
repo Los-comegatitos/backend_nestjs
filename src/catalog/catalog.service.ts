@@ -72,20 +72,16 @@ export class CatalogService {
     return { catalog, serviceTypes };
   }
 
-  async findCatalogByProviderIdwithInfo(
-    providerId: number,
-  ): Promise<{ catalog: CatalogDocument; serviceTypes: ServiceType[] }> {
+  async findCatalogByProviderIdwithInfo(providerId: number) {
     const providerIdString = providerId.toString();
 
     const catalog = await this.findByProviderId(providerIdString);
 
     const user = await this.userService.findById(parseInt(catalog.providerId));
 
-    catalog['providerInfo'] = user;
-
     const serviceTypes = await this.listUsedServiceTypes(providerIdString);
 
-    return { catalog, serviceTypes };
+    return { catalog, serviceTypes, user };
   }
 
   async updateDescription(
