@@ -44,7 +44,9 @@ export class CatalogController {
   @Roles(Role.Provider, Role.Organizer)
   @Get(':providerId')
   async findProvidersCatalog(@Param('providerId') providerId: number) {
-    return await this.catalogService.findCatalogByProviderId(providerId);
+    return await this.catalogService.findCatalogByProviderIdwithInfo(
+      providerId,
+    );
   }
 
   @Roles(Role.Provider)
