@@ -1,25 +1,31 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { CreateTaskDto } from './create-task.dto';
 import { IsOptional, IsString, IsDateString } from 'class-validator';
 
 export class UpdateTaskDto extends PartialType(CreateTaskDto) {
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsString({ message: 'The name must be text' })
+  @IsString({ message: 'El nombre debe ser texto' })
   name?: string;
 
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsString({ message: 'The description must be text' })
+  @IsString({ message: 'La descripción debe ser texto' })
   description?: string;
 
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsDateString({}, { message: 'Reminder date must be in valid format' })
+  @IsDateString(
+    {},
+    { message: 'La fecha de recordatorio debe estar en un formato válido' },
+  )
   reminderDate?: Date;
 
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsDateString({}, { message: 'Due date must be in valid format' })
+  @IsDateString(
+    {},
+    { message: 'La fecha de vencimiento debe estar en un formato válido' },
+  )
   dueDate?: Date;
 }
