@@ -11,6 +11,7 @@ import { AddCatalogServiceDto } from './dto/add-catalog-service.dto';
 import { ServiceTypeService } from 'src/service_type/service_type.service';
 import { ServiceType } from 'src/service_type/service_type.entity';
 import { QuoteService } from 'src/quote/quote.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class CatalogService {
@@ -18,6 +19,7 @@ export class CatalogService {
     @InjectModel(Catalog.name) private catalogModel: Model<CatalogDocument>,
     private readonly serviceTypeService: ServiceTypeService,
     private readonly quoteService: QuoteService,
+    private readonly userService: UserService,
   ) {}
 
   async create(providerId: string) {
@@ -68,6 +70,18 @@ export class CatalogService {
     const serviceTypes = await this.listUsedServiceTypes(providerIdString);
 
     return { catalog, serviceTypes };
+  }
+
+  async findCatalogByProviderIdwithInfo(providerId: number) {
+    const providerIdString = providerId.toString();
+
+    const catalog = await this.findByProviderId(providerIdString);
+
+    const user = await this.userService.findById(parseInt(catalog.providerId));
+
+    const serviceTypes = await this.listUsedServiceTypes(providerIdString);
+
+    return { catalog, serviceTypes, user };
   }
 
   async updateDescription(

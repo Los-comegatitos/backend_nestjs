@@ -557,6 +557,7 @@ export class EventService {
           name: quote.service?.name,
           description: quote.service?.description,
         },
+        quoteId: quote.id as number,
       };
     });
 
