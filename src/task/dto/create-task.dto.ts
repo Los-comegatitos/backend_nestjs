@@ -13,10 +13,12 @@ export class CreateTaskDto {
   description: string;
 
   @ApiProperty({ type: String, example: '2025-12-31T23:59:59Z' })
-  @IsDateString()
+  @IsDateString({}, { message: 'Reminder date must be in valid format' })
+  @IsNotEmpty({ message: 'Reminder date cannot be empty' })
   dueDate: Date;
 
   @ApiProperty({ type: String, example: '2025-12-15T10:00:00Z' })
-  @IsDateString()
+  @IsNotEmpty({ message: 'Due date cannot be empty' })
+  @IsDateString({}, { message: 'Due date must be in valid format' })
   reminderDate: Date;
 }
