@@ -13,7 +13,7 @@ RUN npm install --omit=dev
 COPY . .
 
 # Compilamos el proyecto
-RUN npm run build
+RUN npm run build:prod
 
 # Etapa 2: Producción
 FROM node:20-slim
