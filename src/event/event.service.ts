@@ -44,6 +44,15 @@ export class EventService {
   ): Promise<Event> {
     const { name, eventDate } = createEventDto;
 
+    // validacion eventType
+    const eventType = await this.eventTypeRepository.findOne({
+      where: { id: createEventDto.eventTypeId },
+    });
+    if (!eventType) {
+      throw new NotFoundException(
+        `El tipo de evento con id ${createEventDto.eventTypeId} no existe`,
+      );
+    }
     // Verificar nombre duplicado
     const existingEvent = await this.eventModel.findOne({
       name: { $regex: new RegExp(`^${name}$`, 'i') },
@@ -62,9 +71,16 @@ export class EventService {
       );
     }
 
+    const lastEvent = await this.eventModel
+      .findOne()
+      .sort({ eventId: -1 })
+      .exec();
+    const nextEventId = lastEvent ? `${parseInt(lastEvent.eventId) + 1}` : '1';
+
     const event = new this.eventModel({
       ...createEventDto,
       organizerUserId,
+      eventId: nextEventId,
       status: 'in progress',
       creationDate: new Date(),
     });
