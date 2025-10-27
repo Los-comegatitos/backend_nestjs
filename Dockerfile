@@ -1,19 +1,32 @@
-# Imagen base ligera
-FROM node:22-slim
+# Etapa 1: Build
+FROM node:20-slim AS builder
 
-# Carpeta de trabajo
 WORKDIR /app
 
-# Copia solo lo necesario para instalar dependencias
+# Copiamos solo lo necesario para instalar dependencias
 COPY package*.json ./
+
+# Instalamos solo dependencias de producción
 RUN npm install --omit=dev
 
-# Copia el resto del código y compila
+# Copiamos el resto del código
 COPY . .
+
+# Compilamos el proyecto
 RUN npm run build
 
-# Expón el puerto que usará Render
+# Etapa 2: Producción
+FROM node:20-slim
+
+WORKDIR /app
+
+# Copiamos solo lo necesario desde la etapa de build
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
+# Exponemos el puerto que Render usará
 EXPOSE 10000
 
-# Arranca la app
+# Iniciamos la app
 CMD ["node", "dist/main"]
