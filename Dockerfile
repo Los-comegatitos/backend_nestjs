@@ -1,5 +1,5 @@
 # Imagen base ligera
-FROM node:18-alpine
+FROM node:22-slim
 
 # Carpeta de trabajo
 WORKDIR /app
