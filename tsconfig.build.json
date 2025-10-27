@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"],
-  "typeRoots": ["./node_modules/@types"],
-  "types": ["node", "express"]
+  "compilerOptions": {
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node", "express"]
+  },
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }
