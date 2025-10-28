@@ -8,6 +8,6 @@ export class EventType {
   @Column({ unique: true, length: 255 })
   name: string;
 
-  @Column({ unique: true, length: 255 })
+  @Column({ length: 255 })
   description: string;
 }

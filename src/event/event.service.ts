@@ -53,6 +53,7 @@ export class EventService {
         `El tipo de evento con id ${createEventDto.eventTypeId} no existe`,
       );
     }
+
     // Verificar nombre duplicado
     const existingEvent = await this.eventModel.findOne({
       name: { $regex: new RegExp(`^${name}$`, 'i') },
@@ -122,6 +123,18 @@ export class EventService {
   ): Promise<Event> {
     const event = await this.eventModel.findOne({ eventId });
     if (!event) throw new NotFoundException('Evento no encontrado');
+
+    // si modificaron tambien el nombre del evento validar esto, sino no
+    if (updateEventDto.name !== event.name) {
+      // Verificar nombre duplicado (yo me copié de la lógica de esta validación que ya estaba arriba que hace esto, pero ni idea.)
+      const existingEvent = await this.eventModel.findOne({
+        name: { $regex: new RegExp(`^${updateEventDto.name}$`, 'i') },
+      });
+
+      if (existingEvent) {
+        throw new BadRequestException('Ya existe un evento con ese nombre.');
+      }
+    }
 
     // Validar fecha
     if (updateEventDto.eventDate) {
@@ -492,11 +505,15 @@ export class EventService {
       );
     }
 
-    const exists = event.services.some((s) => s.name === dto.name);
-    if (exists) {
-      throw new BadRequestException(
-        'Un servicio con este nombre ya existe en el evento.',
-      );
+    // si el servicio que está modificando tiene el mismo nombre que el que trae en el endpoint implica que no está modificando el nombre y por ende no hay que validar la existencia de este nombre en otros servicios
+    // pero si son diferentes (caso del if de abajo), sí se revisa esa validación.
+    if (serviceName !== dto.name) {
+      const exists = event.services.some((s) => s.name === dto.name);
+      if (exists) {
+        throw new BadRequestException(
+          'Un servicio con este nombre ya existe en el evento.',
+        );
+      }
     }
 
     if (serviceToUpdate.quote) {
