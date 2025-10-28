@@ -312,9 +312,8 @@ export class QuoteService {
     });
 
     const counts: Record<string, number> = {};
-
     for (const quote of quotes) {
-      const typeId = quote.toServiceId || 'sin_tipo';
+      const typeId = quote.service.serviceTypeId || 'sin_tipo';
       counts[typeId] = (counts[typeId] || 0) + 1;
     }
 
