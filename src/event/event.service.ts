@@ -72,6 +72,20 @@ export class EventService {
       );
     }
 
+    if (createEventDto.client) {
+      const { name, clientTypeId, description } = createEventDto.client;
+
+      if (!name?.trim() || !clientTypeId) {
+        throw new BadRequestException('El cliente debe tener nombre y tipo.');
+      }
+
+      if (!description?.trim()) {
+        throw new BadRequestException(
+          'La descripción del cliente no puede estar vacía.',
+        );
+      }
+    }
+
     const lastEvent = await this.eventModel
       .findOne()
       .sort({ eventId: -1 })
@@ -133,6 +147,18 @@ export class EventService {
 
       if (existingEvent) {
         throw new BadRequestException('Ya existe un evento con ese nombre.');
+      }
+    }
+
+    if (updateEventDto.client) {
+      const { name, clientTypeId, description } = updateEventDto.client;
+      if (!name?.trim() || !clientTypeId) {
+        throw new BadRequestException('El cliente debe tener nombre y tipo.');
+      }
+      if (!description?.trim()) {
+        throw new BadRequestException(
+          'La descripción del cliente no puede estar vacía.',
+        );
       }
     }
 
@@ -453,6 +479,22 @@ export class EventService {
       );
     }
 
+    if (event.status !== 'in progress') {
+      throw new BadRequestException(
+        'No se pueden modificar servicios en un evento finalizado o cancelado.',
+      );
+    }
+
+    if (dto.dueDate) {
+      const due = new Date(dto.dueDate);
+      const eventDate = new Date(event.eventDate);
+      if (due > eventDate) {
+        throw new BadRequestException(
+          'La fecha límite para cotizaciones no puede ser posterior a la fecha del evento.',
+        );
+      }
+    }
+
     // siempre entra con quote null
     event.services.push({ ...dto, quote: null } as Service);
 
@@ -498,6 +540,12 @@ export class EventService {
       throw new BadRequestException('El evento no existe.');
     }
 
+    if (event.status !== 'in progress') {
+      throw new BadRequestException(
+        'No se pueden modificar servicios en un evento finalizado o cancelado.',
+      );
+    }
+
     const serviceToUpdate = event.services.find((s) => s.name === serviceName);
     if (!serviceToUpdate) {
       throw new NotFoundException(
@@ -520,6 +568,16 @@ export class EventService {
       throw new BadRequestException(
         'No se puede modificar un servicio que ya tiene una cotización.',
       );
+    }
+
+    if (dto.dueDate) {
+      const due = new Date(dto.dueDate);
+      const eventDate = new Date(event.eventDate);
+      if (due > eventDate) {
+        throw new BadRequestException(
+          'La fecha límite para cotizaciones no puede ser posterior a la fecha del evento.',
+        );
+      }
     }
 
     Object.assign(serviceToUpdate, dto);
