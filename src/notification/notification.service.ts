@@ -54,26 +54,41 @@ export class NotificationService {
         break;
     }
 
-    // await this.mailService.sendMail({
-    //   to: email.emails,
-    //   subject: title,
-    //   text: message,
-    // });
+    await this.mailService.sendMail({
+      to: email.emails.toString().replaceAll(',', ', '),
+      subject: title,
+      text: message,
+    });
 
-    await Promise.all(
-      email.emails.map(async (info) => {
-        const notification = new this.notificationModel({
-          id: (await this.findEmailCount()) + 1,
-          toUserEmail: info,
-          date: new Date(),
-          name: title,
-          description: message,
-          status: 'unseen',
-          url: email.url,
-        });
-        await notification.save();
-      }),
-    );
+    // await Promise.all(
+    //   email.emails.map(async (info) => {
+    //     const notification = new this.notificationModel({
+    //       id: (await this.findEmailCount()) + 1,
+    //       toUserEmail: info,
+    //       date: new Date(),
+    //       name: title,
+    //       description: message,
+    //       status: 'unseen',
+    //       url: email.url,
+    //     });
+    //     await notification.save();
+    //   }),
+    // );
+
+    const id = await this.findEmailCount();
+    const notifications = email.emails.map((info, i) => {
+      return new this.notificationModel({
+        id: id + i + 1,
+        toUserEmail: info,
+        date: new Date(),
+        name: title,
+        description: message,
+        status: 'unseen',
+        url: email.url,
+      });
+    });
+
+    await Promise.all(notifications.map((n) => n.save()));
 
     // for (let i = 0; i < email.emails.length; i++) {
     //   const info = email.emails[i];
