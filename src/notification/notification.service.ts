@@ -88,7 +88,7 @@ export class NotificationService {
       });
     });
 
-    await Promise.all(notifications.map((n) => n.save()));
+    await this.notificationModel.insertMany(notifications);
 
     // for (let i = 0; i < email.emails.length; i++) {
     //   const info = email.emails[i];
