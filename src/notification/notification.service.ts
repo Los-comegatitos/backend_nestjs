@@ -76,17 +76,15 @@ export class NotificationService {
     // );
 
     const id = await this.findEmailCount();
-    const notifications = email.emails.map((info, i) => {
-      return new this.notificationModel({
-        id: id + i + 1,
-        toUserEmail: info,
-        date: new Date(),
-        name: title,
-        description: message,
-        status: 'unseen',
-        url: email.url,
-      });
-    });
+    const notifications = email.emails.map((info, i) => ({
+      id: id + i + 1,
+      toUserEmail: info,
+      date: new Date(),
+      name: title,
+      description: message,
+      status: 'unseen',
+      url: email.url,
+    }));
 
     await this.notificationModel.insertMany(notifications);
 
