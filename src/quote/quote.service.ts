@@ -239,7 +239,7 @@ export class QuoteService {
 
   async acceptQuote(id: number) {
     const quote = await this.quoteModel.findOne({ id: id });
-    console.log(quote);
+    // console.log(quote);
 
     if (!quote) throw new NotFoundException('La cotización no fue encontrada');
     quote.status = 'accepted';
@@ -312,9 +312,8 @@ export class QuoteService {
     });
 
     const counts: Record<string, number> = {};
-
     for (const quote of quotes) {
-      const typeId = quote.toServiceId || 'sin_tipo';
+      const typeId = quote.service.serviceTypeId || 'sin_tipo';
       counts[typeId] = (counts[typeId] || 0) + 1;
     }
 

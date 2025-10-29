@@ -81,6 +81,29 @@ export class TaskService {
       throw new NotFoundException(`Evento con id ${eventId} no existe`);
     }
 
+    const eventDate = new Date(event.eventDate);
+    const reminderDate = new Date(dto.reminderDate);
+    const dueDate = new Date(dto.dueDate);
+    const today = new Date();
+
+    if (reminderDate > dueDate) {
+      throw new BadRequestException(
+        'La fecha de recordatorio no puede ser posterior a la fecha límite.',
+      );
+    }
+
+    if (dueDate > eventDate || reminderDate > eventDate) {
+      throw new BadRequestException(
+        'Las fechas no pueden ser posteriores a la fecha del evento.',
+      );
+    }
+
+    if (dueDate < today || reminderDate < today) {
+      throw new BadRequestException(
+        'Las fechas no pueden ser anteriores a la fecha actual.',
+      );
+    }
+
     const taskId = uuidv4();
 
     const newTask: Task = {
@@ -124,6 +147,39 @@ export class TaskService {
     const task = event.tasks.find((t) => t.id === taskId);
     if (!task) {
       throw new NotFoundException(`Tarea con id ${taskId} no encontrada`);
+    }
+
+    const eventDate = new Date(event.eventDate);
+    const reminderDate = updateTaskDto.reminderDate
+      ? new Date(updateTaskDto.reminderDate)
+      : null;
+    const dueDate = updateTaskDto.dueDate
+      ? new Date(updateTaskDto.dueDate)
+      : null;
+    const today = new Date();
+
+    if (reminderDate && dueDate && reminderDate > dueDate) {
+      throw new BadRequestException(
+        'La fecha de recordatorio no puede ser posterior a la fecha límite.',
+      );
+    }
+
+    if (
+      (dueDate && dueDate > eventDate) ||
+      (reminderDate && reminderDate > eventDate)
+    ) {
+      throw new BadRequestException(
+        'Las fechas no pueden ser posteriores a la fecha del evento.',
+      );
+    }
+
+    if (
+      (dueDate && dueDate < today) ||
+      (reminderDate && reminderDate < today)
+    ) {
+      throw new BadRequestException(
+        'Las fechas no pueden ser anteriores a la fecha actual.',
+      );
     }
 
     Object.assign(task, updateTaskDto);
@@ -201,11 +257,13 @@ export class TaskService {
     const [removedTask] = event.tasks.splice(taskIndex, 1);
     await event.save();
 
-    if (removedTask.associatedProviderId) {
-      console.log(
-        `Notificación: La tarea "${removedTask.name}" del evento ${eventId} fue eliminada. Proveedor asociado: ${removedTask.associatedProviderId}`,
-      );
-    }
+    // ????????????????????????????????????????????????????????????????????????????????????????
+    // if (removedTask.associatedProviderId) {
+    //   console.log(
+    //     `Notificación: La tarea "${removedTask.name}" del evento ${eventId} fue eliminada. Proveedor asociado: ${removedTask.associatedProviderId}`,
+    //   );
+    // }
+    // ?????????????????????????????????????????????????????????????
 
     return removedTask;
   }
@@ -416,6 +474,7 @@ export class TaskService {
       );
     }
 
+    // orden cronologico (mas antiguos primero) obviamente :v
     // orden cronologico (mas antiguos primero) obviamente :v
     return task.comments.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),

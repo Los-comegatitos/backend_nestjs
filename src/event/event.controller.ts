@@ -54,7 +54,10 @@ export class EventController {
   @ApiBody({ type: CreateEventDto })
   async create(@Body() createEventDto: CreateEventDto, @Req() datos: Request) {
     const { userId } = datos.user as UserPayload;
-    const event = await this.eventService.create(createEventDto, userId);
+    const event = await this.eventService.create(
+      createEventDto,
+      String(userId),
+    );
     return event;
   }
 
@@ -96,7 +99,7 @@ export class EventController {
     @Param('eventId') id: string,
     @Body() updateEventDto: UpdateEventDto,
   ) {
-    const event = await this.eventService.update(Number(id), updateEventDto);
+    const event = await this.eventService.updateEvent(id, updateEventDto);
     return { message: '000', description: 'Evento actualizado', data: event };
   }
 
