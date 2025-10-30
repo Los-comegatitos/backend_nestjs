@@ -121,8 +121,22 @@ export class UserService {
     const user = await this.userRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('El usuario no fue encontrado');
 
-    const updates: Partial<User> = { ...dto };
-    // if (dto.password) updates.password = await bcrypt.hash(dto.password, 10);
+    const updates: Partial<User> = {
+      firstName: dto.firstName ?? user.firstName,
+      lastName: dto.lastName ?? user.lastName,
+      email: dto.email ?? user.email,
+      telephone: dto.telephone === '' ? null : dto.telephone,
+    };
+
+    if (dto.birthDate === null || dto.birthDate === '') {
+      updates.birthDate = null;
+    } else if (dto.birthDate) {
+      const parsed = new Date(dto.birthDate);
+      if (isNaN(parsed.getTime())) {
+        throw new BadRequestException('Fecha de nacimiento inválida');
+      }
+      updates.birthDate = parsed;
+    }
 
     await this.userRepo.update(id, updates);
 

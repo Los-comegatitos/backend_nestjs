@@ -178,6 +178,7 @@ export class EventService {
     return event;
   }
 
+  /*
   async finalize(eventId: number, organizerId: number): Promise<Event> {
     const organizerIdString = organizerId.toString();
 
@@ -249,6 +250,116 @@ export class EventService {
         route: event.name,
         url: `/events-providers`,
       });
+    }
+
+    return event;
+  }
+  */
+
+  //Estos métodos primero obtienen el evento y luego editan el estado, por ello, no usan   findOneAndUpdate
+
+  async finalize(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    const event = await this.eventModel.findOne({
+      eventId: eventId,
+      organizerUserId: organizerIdString,
+    });
+
+    if (!event) {
+      throw new NotFoundException(
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado.`,
+      );
+    }
+
+    // Validar estado
+    if (event.status !== 'in progress') {
+      throw new BadRequestException(
+        'Solo los eventos en progreso pueden ser finalizados.',
+      );
+    }
+
+    // Cambiar el estado
+    event.status = 'finalized';
+    await event.save();
+
+    // Obtener proveedores aceptados
+    const providers = await this.getAcceptedProvidersByEvent(eventId);
+    const users = [...new Set(providers.map((e) => e.providerId))];
+
+    if (users.length > 0) {
+      // Obtener los correos electrónicos válidos
+      const emails = await Promise.all(
+        users.map(async (id) => {
+          const info = await this.userService.findById(id);
+          return info?.email;
+        }),
+      );
+
+      const validEmails = emails.filter(Boolean);
+
+      // Enviar notificación por correo
+      if (validEmails.length > 0) {
+        await this.notificationService.sendEmail({
+          emails: validEmails,
+          type: Notification_type.event_finished,
+          route: event.name,
+          url: `/events-providers`,
+        });
+      }
+    }
+
+    return event;
+  }
+
+  async cancelEvent(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    // Obtener el evento
+    const event = await this.eventModel.findOne({
+      eventId: eventId,
+      organizerUserId: organizerIdString,
+    });
+
+    if (!event) {
+      throw new NotFoundException(
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
+      );
+    }
+
+    // Validar que el estado actual
+    if (event.status !== 'in progress') {
+      throw new BadRequestException(
+        'Solo los eventos en progreso pueden ser cancelados.',
+      );
+    }
+
+    // Actualizar el estado a "canceled"
+    event.status = 'canceled';
+    await event.save();
+
+    // Notificar a los proveedores
+    const providers = await this.getAcceptedProvidersByEvent(eventId);
+    const users = [...new Set(providers.map((e) => e.providerId))];
+
+    if (users.length > 0) {
+      const emails = await Promise.all(
+        users.map(async (id) => {
+          const info = await this.userService.findById(id);
+          return info.email;
+        }),
+      );
+
+      const validEmails = emails.filter(Boolean);
+
+      if (validEmails.length > 0) {
+        await this.notificationService.sendEmail({
+          emails: validEmails,
+          type: Notification_type.event_cancelled,
+          route: event.name,
+          url: `/events-providers`,
+        });
+      }
     }
 
     return event;
