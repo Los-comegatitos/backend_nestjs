@@ -38,24 +38,10 @@ export class UserService {
         'La contraseña debe tener al menos 8 caracteres',
       );
 
-    // const birthDate = new Date(dto.birthDate);
-    // if (isNaN(birthDate.getTime()))
-    //   throw new ConflictException('Fecha de nacimiento inválida');
-
-    // const age =
-    //   new Date(Date.now() - birthDate.getTime()).getUTCFullYear() - 1970;
-    // if (age < 18)
-    //   throw new ConflictException('El usuario debe tener al menos 18 años');
-
     const emailExists = await this.userRepo.findOne({
       where: { email: dto.email },
     });
     if (emailExists) throw new ConflictException('Email ya registrado');
-
-    // const phoneExists = await this.userRepo.findOne({
-    //   where: { telephone: dto.telephone },
-    // });
-    // if (phoneExists) throw new ConflictException('Teléfono ya registrado');
 
     const typeUser = await this.getTypeUser(dto.user_Typeid);
 
@@ -131,11 +117,18 @@ export class UserService {
     if (dto.birthDate === null || dto.birthDate === '') {
       updates.birthDate = null;
     } else if (dto.birthDate) {
-      const parsed = new Date(dto.birthDate);
-      if (isNaN(parsed.getTime())) {
+      const dateParts = dto.birthDate.split('-');
+      const localDate = new Date(
+        Number(dateParts[0]),
+        Number(dateParts[1]) - 1,
+        Number(dateParts[2]),
+      );
+
+      if (isNaN(localDate.getTime())) {
         throw new BadRequestException('Fecha de nacimiento inválida');
       }
-      updates.birthDate = parsed;
+
+      updates.birthDate = localDate;
     }
 
     await this.userRepo.update(id, updates);

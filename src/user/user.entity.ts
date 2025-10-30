@@ -21,7 +21,7 @@ export class User {
   @Column()
   email: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   telephone: string | null;
 
   @Column({ nullable: true, type: 'date' })
