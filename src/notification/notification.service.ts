@@ -54,13 +54,13 @@ export class NotificationService {
         break;
     }
 
-    console.log(email.emails);
+    // console.log(email.emails);
 
-    await this.mailService.sendMail({
-      to: email.emails[0],
-      subject: title,
-      text: message,
-    });
+    // await this.mailService.sendMail({
+    //   to: email.emails[0],
+    //   subject: title,
+    //   text: message,
+    // });
 
     // await Promise.all(
     //   email.emails.map((emailString) =>
