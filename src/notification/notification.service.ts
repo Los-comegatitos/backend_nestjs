@@ -55,7 +55,7 @@ export class NotificationService {
     }
 
     await this.mailService.sendMail({
-      to: email.emails.toString().replaceAll(',', ', '),
+      to: email.emails.join(', '),
       subject: title,
       text: message,
     });
