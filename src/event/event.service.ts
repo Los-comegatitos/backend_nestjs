@@ -72,6 +72,20 @@ export class EventService {
       );
     }
 
+    if (createEventDto.client) {
+      const { name, clientTypeId, description } = createEventDto.client;
+
+      if (!name?.trim() || !clientTypeId) {
+        throw new BadRequestException('El cliente debe tener nombre y tipo.');
+      }
+
+      if (!description?.trim()) {
+        throw new BadRequestException(
+          'La descripción del cliente no puede estar vacía.',
+        );
+      }
+    }
+
     const lastEvent = await this.eventModel
       .findOne()
       .sort({ eventId: -1 })
@@ -136,6 +150,18 @@ export class EventService {
       }
     }
 
+    if (updateEventDto.client) {
+      const { name, clientTypeId, description } = updateEventDto.client;
+      if (!name?.trim() || !clientTypeId) {
+        throw new BadRequestException('El cliente debe tener nombre y tipo.');
+      }
+      if (!description?.trim()) {
+        throw new BadRequestException(
+          'La descripción del cliente no puede estar vacía.',
+        );
+      }
+    }
+
     // Validar fecha
     if (updateEventDto.eventDate) {
       const newDate = new Date(updateEventDto.eventDate);
@@ -152,6 +178,7 @@ export class EventService {
     return event;
   }
 
+  /*
   async finalize(eventId: number, organizerId: number): Promise<Event> {
     const organizerIdString = organizerId.toString();
 
@@ -223,6 +250,116 @@ export class EventService {
         route: event.name,
         url: `/events-providers`,
       });
+    }
+
+    return event;
+  }
+  */
+
+  //Estos métodos primero obtienen el evento y luego editan el estado, por ello, no usan   findOneAndUpdate
+
+  async finalize(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    const event = await this.eventModel.findOne({
+      eventId: eventId,
+      organizerUserId: organizerIdString,
+    });
+
+    if (!event) {
+      throw new NotFoundException(
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado.`,
+      );
+    }
+
+    // Validar estado
+    if (event.status !== 'in progress') {
+      throw new BadRequestException(
+        'Solo los eventos en progreso pueden ser finalizados.',
+      );
+    }
+
+    // Cambiar el estado
+    event.status = 'finalized';
+    await event.save();
+
+    // Obtener proveedores aceptados
+    const providers = await this.getAcceptedProvidersByEvent(eventId);
+    const users = [...new Set(providers.map((e) => e.providerId))];
+
+    if (users.length > 0) {
+      // Obtener los correos electrónicos válidos
+      const emails = await Promise.all(
+        users.map(async (id) => {
+          const info = await this.userService.findById(id);
+          return info?.email;
+        }),
+      );
+
+      const validEmails = emails.filter(Boolean);
+
+      // Enviar notificación por correo
+      if (validEmails.length > 0) {
+        await this.notificationService.sendEmail({
+          emails: validEmails,
+          type: Notification_type.event_finished,
+          route: event.name,
+          url: `/events-providers`,
+        });
+      }
+    }
+
+    return event;
+  }
+
+  async cancelEvent(eventId: number, organizerId: number): Promise<Event> {
+    const organizerIdString = organizerId.toString();
+
+    // Obtener el evento
+    const event = await this.eventModel.findOne({
+      eventId: eventId,
+      organizerUserId: organizerIdString,
+    });
+
+    if (!event) {
+      throw new NotFoundException(
+        `Evento con eventId "${eventId}" de organizadorId "${organizerIdString}" no encontrado`,
+      );
+    }
+
+    // Validar que el estado actual
+    if (event.status !== 'in progress') {
+      throw new BadRequestException(
+        'Solo los eventos en progreso pueden ser cancelados.',
+      );
+    }
+
+    // Actualizar el estado a "canceled"
+    event.status = 'canceled';
+    await event.save();
+
+    // Notificar a los proveedores
+    const providers = await this.getAcceptedProvidersByEvent(eventId);
+    const users = [...new Set(providers.map((e) => e.providerId))];
+
+    if (users.length > 0) {
+      const emails = await Promise.all(
+        users.map(async (id) => {
+          const info = await this.userService.findById(id);
+          return info.email;
+        }),
+      );
+
+      const validEmails = emails.filter(Boolean);
+
+      if (validEmails.length > 0) {
+        await this.notificationService.sendEmail({
+          emails: validEmails,
+          type: Notification_type.event_cancelled,
+          route: event.name,
+          url: `/events-providers`,
+        });
+      }
     }
 
     return event;
@@ -453,6 +590,22 @@ export class EventService {
       );
     }
 
+    if (event.status !== 'in progress') {
+      throw new BadRequestException(
+        'No se pueden modificar servicios en un evento finalizado o cancelado.',
+      );
+    }
+
+    if (dto.dueDate) {
+      const due = new Date(dto.dueDate);
+      const eventDate = new Date(event.eventDate);
+      if (due > eventDate) {
+        throw new BadRequestException(
+          'La fecha límite para cotizaciones no puede ser posterior a la fecha del evento.',
+        );
+      }
+    }
+
     // siempre entra con quote null
     event.services.push({ ...dto, quote: null } as Service);
 
@@ -498,6 +651,12 @@ export class EventService {
       throw new BadRequestException('El evento no existe.');
     }
 
+    if (event.status !== 'in progress') {
+      throw new BadRequestException(
+        'No se pueden modificar servicios en un evento finalizado o cancelado.',
+      );
+    }
+
     const serviceToUpdate = event.services.find((s) => s.name === serviceName);
     if (!serviceToUpdate) {
       throw new NotFoundException(
@@ -520,6 +679,16 @@ export class EventService {
       throw new BadRequestException(
         'No se puede modificar un servicio que ya tiene una cotización.',
       );
+    }
+
+    if (dto.dueDate) {
+      const due = new Date(dto.dueDate);
+      const eventDate = new Date(event.eventDate);
+      if (due > eventDate) {
+        throw new BadRequestException(
+          'La fecha límite para cotizaciones no puede ser posterior a la fecha del evento.',
+        );
+      }
     }
 
     Object.assign(serviceToUpdate, dto);
