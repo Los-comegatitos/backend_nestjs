@@ -54,21 +54,23 @@ export class NotificationService {
         break;
     }
 
-    // await this.mailService.sendMail({
-    //   to: email.emails.join(', '),
-    //   subject: title,
-    //   text: message,
-    // });
+    console.log(email.emails);
 
-    await Promise.all(
-      email.emails.map((emailString) =>
-        this.mailService.sendMail({
-          to: emailString,
-          subject: title,
-          text: message,
-        }),
-      ),
-    );
+    await this.mailService.sendMail({
+      to: email.emails[0],
+      subject: title,
+      text: message,
+    });
+
+    // await Promise.all(
+    //   email.emails.map((emailString) =>
+    //     this.mailService.sendMail({
+    //       to: emailString,
+    //       subject: title,
+    //       text: message,
+    //     }),
+    //   ),
+    // );
 
     // await Promise.all(
     //   email.emails.map(async (info) => {
@@ -96,7 +98,11 @@ export class NotificationService {
       url: email.url,
     }));
 
+    console.log(notifications);
+
     await this.notificationModel.insertMany(notifications);
+
+    console.log('las envió');
 
     // for (let i = 0; i < email.emails.length; i++) {
     //   const info = email.emails[i];
