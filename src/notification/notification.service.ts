@@ -54,11 +54,21 @@ export class NotificationService {
         break;
     }
 
-    await this.mailService.sendMail({
-      to: email.emails.join(', '),
-      subject: title,
-      text: message,
-    });
+    // await this.mailService.sendMail({
+    //   to: email.emails.join(', '),
+    //   subject: title,
+    //   text: message,
+    // });
+
+    await Promise.all(
+      email.emails.map((emailString) =>
+        this.mailService.sendMail({
+          to: emailString,
+          subject: title,
+          text: message,
+        }),
+      ),
+    );
 
     // await Promise.all(
     //   email.emails.map(async (info) => {
