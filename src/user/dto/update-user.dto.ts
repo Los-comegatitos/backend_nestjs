@@ -14,10 +14,9 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsString()
   lastName?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: String, example: '1990-01-01', nullable: true })
   @IsOptional()
-  @IsString()
-  birthDate?: Date;
+  birthDate?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
