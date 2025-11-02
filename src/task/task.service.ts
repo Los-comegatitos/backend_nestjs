@@ -503,7 +503,7 @@ export class TaskService {
     return tasksForProvider;
   }*/
 
-  async getTasksForProvider(providerId: string): Promise<
+  /*async getTasksForProvider(providerId: string): Promise<
     {
       eventId: string;
       eventName: string;
@@ -519,6 +519,40 @@ export class TaskService {
         'You have no tasks assigned in any event or you are not authorized to view them',
       );
     }
+
+    const providerTasks: {
+      eventId: string;
+      eventName: string;
+      task: Task;
+    }[] = [];
+
+    for (const event of events) {
+      const tasksForProvider = event.tasks.filter(
+        (t) => t.associatedProviderId === providerId,
+      );
+
+      for (const task of tasksForProvider) {
+        providerTasks.push({
+          eventId: event.eventId,
+          eventName: event.name,
+          task: task,
+        });
+      }
+    }
+
+    return providerTasks;
+  }*/
+
+  async getTasksForProvider(providerId: string): Promise<
+    {
+      eventId: string;
+      eventName: string;
+      task: Task;
+    }[]
+  > {
+    const events = await this.eventModel.find({
+      'tasks.associatedProviderId': providerId,
+    });
 
     const providerTasks: {
       eventId: string;
