@@ -62,7 +62,7 @@ export class EvaluationController {
   }
 
   @Get('providers/:providerId/average')
-  @Roles(Role.Organizer, Role.Provider)
+  @Roles(Role.Organizer, Role.Provider, Role.Admin)
   @ApiOperation({
     summary: 'Obtener el promedio de calificaciones de un proveedor',
   })
