@@ -54,26 +54,70 @@ export class NotificationService {
         break;
     }
 
-    await this.mailService.sendMail({
-      to: email.emails,
-      subject: title,
-      text: message,
-    });
+    console.log(email.emails);
 
-    for (let i = 0; i < email.emails.length; i++) {
-      const info = email.emails[i];
-      const notification = new this.notificationModel({
-        id: (await this.findEmailCount()) + 1,
-        toUserEmail: info,
-        date: new Date(),
-        name: title,
-        description: message,
-        status: 'unseen',
-        url: email.url,
-      });
+    // await this.mailService.sendMail({
+    //   to: email.emails.join(', '),
+    //   subject: title,
+    //   text: message,
+    // });
 
-      await notification.save();
-    }
+    // await Promise.all(
+    //   email.emails.map((emailString) =>
+    //     this.mailService.sendMail({
+    //       to: emailString,
+    //       subject: title,
+    //       text: message,
+    //     }),
+    //   ),
+    // );
+
+    // await Promise.all(
+    //   email.emails.map(async (info) => {
+    //     const notification = new this.notificationModel({
+    //       id: (await this.findEmailCount()) + 1,
+    //       toUserEmail: info,
+    //       date: new Date(),
+    //       name: title,
+    //       description: message,
+    //       status: 'unseen',
+    //       url: email.url,
+    //     });
+    //     await notification.save();
+    //   }),
+    // );
+
+    const id = await this.findEmailCount();
+    const notifications = email.emails.map((info, i) => ({
+      id: id + i + 1,
+      toUserEmail: info,
+      date: new Date(),
+      name: title,
+      description: message,
+      status: 'unseen',
+      url: email.url,
+    }));
+
+    console.log(notifications);
+
+    await this.notificationModel.insertMany(notifications);
+
+    console.log('las envió');
+
+    // for (let i = 0; i < email.emails.length; i++) {
+    //   const info = email.emails[i];
+    //   const notification = new this.notificationModel({
+    //     id: (await this.findEmailCount()) + 1,
+    //     toUserEmail: info,
+    //     date: new Date(),
+    //     name: title,
+    //     description: message,
+    //     status: 'unseen',
+    //     url: email.url,
+    //   });
+
+    //   await notification.save();
+    // }
 
     return 'se mandó';
   }

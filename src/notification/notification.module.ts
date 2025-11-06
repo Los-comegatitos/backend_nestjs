@@ -27,6 +27,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             user: configService.get<string>('GMAIL_EMAIL'),
             pass: configService.get<string>('APP_PASSWORD'),
           },
+          // requireTLS: true,
+          // connectionTimeout: 10000,
+          // greetingTimeout: 5000,
+          // socketTimeout: 10000,
           tls: {
             // ciphers: 'SSLv3',
             rejectUnauthorized: false,

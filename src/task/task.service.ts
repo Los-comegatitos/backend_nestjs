@@ -215,9 +215,9 @@ export class TaskService {
 
       await this.notificationService.sendEmail({
         emails: [email],
-        type: Notification_type.task_assigned,
+        type: Notification_type.task_finished,
         route: event.name,
-        url: `/events-providers/${event.eventId}/task-providers`,
+        url: `/task-providers/${event.eventId}/${taskId}`,
       });
     }
 
@@ -349,7 +349,7 @@ export class TaskService {
       emails: [email],
       type: Notification_type.task_assigned,
       route: event.name,
-      url: `/events-providers/${event.eventId}/task-providers`,
+      url: `/task-providers/${event.eventId}/${taskId}`,
     });
 
     return info;
@@ -386,9 +386,9 @@ export class TaskService {
 
     await this.notificationService.sendEmail({
       emails: [email],
-      type: Notification_type.task_assigned,
+      type: Notification_type.task_unassigned,
       route: event.name,
-      url: `/events-providers/${event.eventId}/task-providers`,
+      url: `/task-providers/${event.eventId}/${taskId}`,
     });
 
     return info;
