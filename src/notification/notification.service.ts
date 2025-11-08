@@ -56,11 +56,11 @@ export class NotificationService {
 
     console.log(email.emails);
 
-    await this.mailService.sendMail({
-      to: email.emails.join(', '),
-      subject: title,
-      text: message,
-    });
+    // await this.mailService.sendMail({
+    //   to: email.emails.join(', '),
+    //   subject: title,
+    //   text: message,
+    // });
 
     // await Promise.all(
     //   email.emails.map((emailString) =>
