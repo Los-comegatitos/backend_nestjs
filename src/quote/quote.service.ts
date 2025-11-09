@@ -252,11 +252,19 @@ export class QuoteService {
       date: quote.date,
     };
 
-    await this.eventService.addQuote(
-      quote.eventId.toString(),
-      quote.toServiceId,
-      newInfo,
-    );
+    try {
+      await this.eventService.addQuote(
+        quote.eventId.toString(),
+        quote.toServiceId,
+        newInfo,
+      );
+    } catch (e) {
+      quote.status = 'pending';
+      await quote.save();
+      throw e;
+    }
+
+    // Lo que pasa... Es que incluso si falla esto sigue... no le pusieron el try catch
 
     const provider = await this.userService.findById(
       parseInt(newInfo.providerId),
